@@ -15,7 +15,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [animateBadge, setAnimateBadge] = useState(false);
 
-  // Vérification de l'authentification
+  // ✅ Vérification de l'authentification
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -23,14 +23,14 @@ export default function Navbar() {
     return () => unsub();
   }, []);
 
-  // Gestion déconnexion
+  // ✅ Déconnexion
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
     navigate("/login");
   };
 
-  // Détection écran mobile
+  // ✅ Détection écran mobile
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 600);
@@ -40,7 +40,7 @@ export default function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Animation badge panier
+  // ✅ Animation badge panier
   useEffect(() => {
     if (cart.length > 0) {
       setAnimateBadge(true);
@@ -48,7 +48,7 @@ export default function Navbar() {
     }
   }, [cart.length]);
 
-  // Styles (utilisation des variables d'état)
+  // ✅ Styles
   const navStyle = {
     display: "flex",
     justifyContent: "space-between",
@@ -58,7 +58,7 @@ export default function Navbar() {
     color: "white",
     position: "sticky",
     top: 0,
-    zIndex: 1000,
+    zIndex: 4000,
   };
 
   const titleStyle = { fontSize: "1.4rem", fontWeight: "bold" };
@@ -66,7 +66,7 @@ export default function Navbar() {
   const ulStyle = {
     display: "flex",
     flexDirection: isMobile ? "column" : "row",
-    alignItems: "flex-start",
+    alignItems: isMobile ? "flex-start" : "center",
     position: isMobile ? "fixed" : "static",
     top: 0,
     right: 0,
@@ -80,7 +80,7 @@ export default function Navbar() {
     margin: 0,
     transform: isMobile ? (menuOpen ? "translateX(0)" : "translateX(100%)") : "none",
     transition: "transform 0.3s ease-in-out",
-    zIndex: 2001,
+    zIndex: 3000, // ✅ Menu au-dessus de l’overlay
   };
 
   const baseLinkStyle = {
@@ -99,7 +99,7 @@ export default function Navbar() {
     ...baseLinkStyle,
     color: "#ff9800",
     fontWeight: "bold",
-    backgroundColor: isMobile ? "rgba(255, 152, 0, 0.15)" : "transparent",
+    backgroundColor: isMobile ? "rgba(255,152,0,0.15)" : "transparent",
   };
 
   const badgeStyle = {
@@ -121,7 +121,7 @@ export default function Navbar() {
     fontSize: "1.8rem",
     cursor: "pointer",
     display: isMobile ? "block" : "none",
-    zIndex: 2100,
+    zIndex: 4001,
   };
 
   const overlayStyle = {
@@ -135,40 +135,73 @@ export default function Navbar() {
     visibility: menuOpen ? "visible" : "hidden",
     pointerEvents: menuOpen ? "auto" : "none",
     transition: "opacity 0.3s ease",
-    zIndex: 1500,
+    zIndex: 2000, // ✅ en dessous du menu
   };
 
   const handleLinkClick = () => setTimeout(() => setMenuOpen(false), 200);
 
-  const getLinkStyle = (path) => (location.pathname === path ? activeLinkStyle : baseLinkStyle);
+  const getLinkStyle = (path) =>
+    location.pathname === path ? activeLinkStyle : baseLinkStyle;
 
   return (
     <>
       <nav style={navStyle}>
         <h1 style={titleStyle}>Boutique COD</h1>
 
-        {isMobile && <span style={menuIcon} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? "✖" : "☰"}</span>}
+        {isMobile && (
+          <span style={menuIcon} onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? "✖" : "☰"}
+          </span>
+        )}
 
-        <ul style={ulStyle}>
-          <li><Link to="/" style={getLinkStyle("/")} onClick={handleLinkClick}>Accueil</Link></li>
-          <li><Link to="/shop" style={getLinkStyle("/shop")} onClick={handleLinkClick}>Produits</Link></li>
+        <ul style={ulStyle} onClick={(e) => e.stopPropagation()}>
+          <li>
+            <Link to="/" style={getLinkStyle("/")} onClick={handleLinkClick}>
+              Accueil
+            </Link>
+          </li>
+          <li>
+            <Link to="/shop" style={getLinkStyle("/shop")} onClick={handleLinkClick}>
+              Produits
+            </Link>
+          </li>
 
           {!user && (
             <>
-              <li><Link to="/devenir-vendeur" style={getLinkStyle("/devenir-vendeur")} onClick={handleLinkClick}>Devenir Vendeur</Link></li>
-              <li><Link to="/devenir-affilie" style={getLinkStyle("/devenir-affilie")} onClick={handleLinkClick}>Devenir Affilié</Link></li>
-              <li><Link to="/login" style={getLinkStyle("/login")} onClick={handleLinkClick}>Se Connecter</Link></li>
+              <li>
+                <Link to="/devenir-vendeur" style={getLinkStyle("/devenir-vendeur")} onClick={handleLinkClick}>
+                  Devenir Vendeur
+                </Link>
+              </li>
+              <li>
+                <Link to="/devenir-affilie" style={getLinkStyle("/devenir-affilie")} onClick={handleLinkClick}>
+                  Devenir Affilié
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" style={getLinkStyle("/login")} onClick={handleLinkClick}>
+                  Se Connecter
+                </Link>
+              </li>
             </>
           )}
 
           {user && (
             <>
-              <li><Link to="/dashboard-vendeur" style={getLinkStyle("/dashboard-vendeur")} onClick={handleLinkClick}>Dashboard</Link></li>
-              <li><span style={{ ...baseLinkStyle, color: "red" }} onClick={handleLogout}>🚪 Déconnexion</span></li>
+              <li>
+                <Link to="/dashboard-vendeur" style={getLinkStyle("/dashboard-vendeur")} onClick={handleLinkClick}>
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <span style={{ ...baseLinkStyle, color: "red" }} onClick={handleLogout}>
+                  🚪 Déconnexion
+                </span>
+              </li>
             </>
           )}
 
-          {/* Panier affiché uniquement si utilisateur NON connecté */}
+          {/* ✅ Panier affiché uniquement si utilisateur NON connecté */}
           {!user && (
             <li>
               <Link to="/cart" style={getLinkStyle("/cart")} onClick={handleLinkClick}>
