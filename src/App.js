@@ -1,25 +1,36 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { CartProvider } from "./context/CartContext";
+import Navbar from "./components/Navbar";
+import Shop from "./pages/Shop";
+import Home from "./pages/Home";
+import Cart from "./pages/cart";
+import Login from "./pages/Login";
+import DevenirVendeur from "./pages/DevenirVendeur";
+import DevenirAffilie from "./pages/DevenirAffilie";
+import DashboardVendeur from "./pages/DashboardVendeur";
+import Produit from "./pages/Produit";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <CartProvider>
+      <Router>
+        <Navbar />
+        <div className="container">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/devenir-vendeur" element={<DevenirVendeur />} />
+            <Route path="/devenir-affilie" element={<DevenirAffilie />} />
+            <Route path="/dashboard-vendeur" element={<DashboardVendeur />} />
+            <Route path="/produit/:id" element={<Produit />} />
+
+          </Routes>
+        </div>
+      </Router>
+    </CartProvider>
   );
 }
-
-export default App;

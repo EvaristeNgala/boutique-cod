@@ -1,0 +1,43 @@
+.home {
+  text-align: center;
+  padding: 50px 20px;
+  background: #f8f9fa;
+}
+
+.home h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.home .brand {
+  color: #ff9800;
+}
+
+.home p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.features li {
+  font-size: 1rem;
+  margin: 5px 0;
+}
+
+.home .btn {
+  background: #ff9800;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.home .btn:hover {
+  background: #e68900;
+}

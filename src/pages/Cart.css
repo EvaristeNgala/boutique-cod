@@ -1,0 +1,56 @@
+/* src/pages/Cart.css */
+
+.cart {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  min-height: 60vh;
+}
+
+.cart h2 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.cart p {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.cart strong {
+  color: #ff9800;
+}
+
+.cart .btn {
+  background: #ff9800;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  display: inline-block;
+  margin-top: 20px;
+  transition: background 0.3s;
+}
+
+.cart .btn:hover {
+  background: #e68900;
+}
+
+/* ✅ Responsive Mobile */
+@media (max-width: 600px) {
+  .cart h2 {
+    font-size: 1.5rem;
+  }
+
+  .cart p {
+    font-size: 1rem;
+  }
+
+  .cart .btn {
+    width: 90%;
+    padding: 14px;
+  }
+}
