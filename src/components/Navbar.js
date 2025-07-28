@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import logo from "../assets/logo.png"; // ✅ Logo PNG
 
 export default function Navbar() {
   const { cart } = useContext(CartContext);
@@ -13,118 +14,92 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [animateBadge, setAnimateBadge] = useState(false);
 
-  // ✅ Vérification de l'authentification
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
     return () => unsub();
   }, []);
 
-  // ✅ Déconnexion
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
     navigate("/login");
   };
 
-  // ✅ Détection écran mobile
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 600);
-      if (window.innerWidth >= 600) setMenuOpen(false);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 600);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Animation badge panier
-  useEffect(() => {
-    if (cart.length > 0) {
-      setAnimateBadge(true);
-      setTimeout(() => setAnimateBadge(false), 400);
-    }
-  }, [cart.length]);
-
-  // ✅ Styles
+  // ✅ Styles principaux
   const navStyle = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "10px 20px",
-    background: "#222",
+    padding: "12px 20px",
+    background: "#0d1b2a", // ✅ Bleu sombre
     color: "white",
     position: "sticky",
     top: 0,
     zIndex: 4000,
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
   };
 
-  const titleStyle = { fontSize: "1.4rem", fontWeight: "bold" };
+  const leftSide = { display: "flex", alignItems: "center", gap: "10px" };
+  const logoStyle = { height: "40px", cursor: "pointer" };
 
-  const ulStyle = {
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
-    alignItems: isMobile ? "flex-start" : "center",
-    position: isMobile ? "fixed" : "static",
-    top: 0,
-    right: 0,
-    background: isMobile ? "#333" : "transparent",
-    width: isMobile ? "250px" : "auto",
-    height: isMobile ? "100vh" : "auto",
-    padding: isMobile ? "80px 20px" : "0",
-    boxShadow: isMobile ? "0 4px 12px rgba(0,0,0,0.3)" : "none",
-    gap: isMobile ? "20px" : "15px",
-    listStyle: "none",
-    margin: 0,
-    transform: isMobile ? (menuOpen ? "translateX(0)" : "translateX(100%)") : "none",
-    transition: "transform 0.3s ease-in-out",
-    zIndex: 3000, // ✅ Menu au-dessus de l’overlay
+  const centerLinks = {
+    display: isMobile ? "none" : "flex",
+    gap: "25px",
+    marginLeft: "30px",
+    flex: 1,
   };
 
-  const baseLinkStyle = {
-    color: "white",
+  const linkStyle = { color: "#fff", textDecoration: "none", fontSize: "1rem", fontWeight: "500" };
+
+  const rightSide = { display: "flex", alignItems: "center", gap: "12px" };
+  const connectBtn = {
+    color: "#fff",
     textDecoration: "none",
-    fontSize: "1rem",
-    padding: isMobile ? "8px 0" : "8px 12px",
+    background: "#1b263b",
+    padding: "7px 12px",
     borderRadius: "5px",
-    display: "block",
-    width: isMobile ? "100%" : "auto",
-    cursor: "pointer",
-    transition: "background-color 0.3s",
+    fontSize: "0.9rem",
+    border: "1px solid #415a77",
   };
-
-  const activeLinkStyle = {
-    ...baseLinkStyle,
-    color: "#ff9800",
-    fontWeight: "bold",
-    backgroundColor: isMobile ? "rgba(255,152,0,0.15)" : "transparent",
-  };
-
+  const cartIcon = { color: "#fff", fontSize: "1.4rem", position: "relative" };
   const badgeStyle = {
+    position: "absolute",
+    top: "-5px",
+    right: "-8px",
     background: "red",
     color: "white",
     borderRadius: "50%",
-    fontSize: "0.8rem",
-    padding: "3px 7px",
-    marginLeft: "5px",
-    fontWeight: "bold",
-    display: "inline-block",
-    minWidth: "20px",
-    textAlign: "center",
-    transform: animateBadge ? "scale(1.3)" : "scale(1)",
-    transition: "transform 0.3s ease",
+    padding: "2px 6px",
+    fontSize: "0.7rem",
   };
 
-  const menuIcon = {
-    fontSize: "1.8rem",
-    cursor: "pointer",
-    display: isMobile ? "block" : "none",
-    zIndex: 4001,
+  const menuIcon = { fontSize: "1.9rem", cursor: "pointer", display: isMobile ? "block" : "none" };
+
+  // ✅ Menu latéral mobile
+  const sideMenu = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "250px",
+    height: "100%",
+    background: "#1b263b", // ✅ Bleu sombre menu
+    color: "#fff",
+    padding: "70px 20px",
+    transform: menuOpen ? "translateX(0)" : "translateX(-100%)",
+    transition: "transform 0.3s ease-in-out",
+    zIndex: 3000,
   };
 
-  const overlayStyle = {
+  const sideMenuLink = { display: "block", color: "#fff", textDecoration: "none", padding: "12px 0", fontSize: "1.1rem", borderBottom: "1px solid #415a77" };
+
+  const overlay = {
     position: "fixed",
     top: 0,
     left: 0,
@@ -133,86 +108,57 @@ export default function Navbar() {
     background: "rgba(0,0,0,0.5)",
     opacity: menuOpen ? 1 : 0,
     visibility: menuOpen ? "visible" : "hidden",
-    pointerEvents: menuOpen ? "auto" : "none",
     transition: "opacity 0.3s ease",
-    zIndex: 2000, // ✅ en dessous du menu
+    zIndex: 2000,
   };
-
-  const handleLinkClick = () => setTimeout(() => setMenuOpen(false), 200);
-
-  const getLinkStyle = (path) =>
-    location.pathname === path ? activeLinkStyle : baseLinkStyle;
 
   return (
     <>
+      {/* ✅ Navbar */}
       <nav style={navStyle}>
-        <h1 style={titleStyle}>Boutique COD</h1>
+        {/* ✅ Hamburger + Logo */}
+        <div style={leftSide}>
+          {isMobile && <span style={menuIcon} onClick={() => setMenuOpen(true)}>☰</span>}
+          <img src={logo} alt="Logo" style={logoStyle} onClick={() => navigate("/")} />
+        </div>
 
-        {isMobile && (
-          <span style={menuIcon} onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? "✖" : "☰"}
-          </span>
-        )}
+        {/* ✅ Liens (PC uniquement) */}
+        <div style={centerLinks}>
+          <Link to="/" style={linkStyle}>Accueil</Link>
+          <Link to="/shop" style={linkStyle}>Boutique</Link>
+          {!user && <Link to="/devenir-vendeur" style={linkStyle}>Devenir Vendeur</Link>}
+          {!user && <Link to="/devenir-affilie" style={linkStyle}>Devenir Affilié</Link>}
+          {user && <Link to="/dashboard-vendeur" style={linkStyle}>Dashboard</Link>}
+        </div>
 
-        <ul style={ulStyle} onClick={(e) => e.stopPropagation()}>
-          <li>
-            <Link to="/" style={getLinkStyle("/")} onClick={handleLinkClick}>
-              Accueil
-            </Link>
-          </li>
-          <li>
-            <Link to="/shop" style={getLinkStyle("/shop")} onClick={handleLinkClick}>
-              Produits
-            </Link>
-          </li>
-
+        {/* ✅ Droite */}
+        <div style={rightSide}>
+          {!user ? (
+            <Link to="/login" style={connectBtn}>Se connecter</Link>
+          ) : (
+            <span onClick={handleLogout} style={{ ...connectBtn, background: "red", cursor: "pointer" }}>Déconnexion</span>
+          )}
           {!user && (
-            <>
-              <li>
-                <Link to="/devenir-vendeur" style={getLinkStyle("/devenir-vendeur")} onClick={handleLinkClick}>
-                  Devenir Vendeur
-                </Link>
-              </li>
-              <li>
-                <Link to="/devenir-affilie" style={getLinkStyle("/devenir-affilie")} onClick={handleLinkClick}>
-                  Devenir Affilié
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" style={getLinkStyle("/login")} onClick={handleLinkClick}>
-                  Se Connecter
-                </Link>
-              </li>
-            </>
+            <Link to="/cart" style={cartIcon}>
+              🛒 {cart.length > 0 && <span style={badgeStyle}>{cart.length}</span>}
+            </Link>
           )}
-
-          {user && (
-            <>
-              <li>
-                <Link to="/dashboard-vendeur" style={getLinkStyle("/dashboard-vendeur")} onClick={handleLinkClick}>
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <span style={{ ...baseLinkStyle, color: "red" }} onClick={handleLogout}>
-                  🚪 Déconnexion
-                </span>
-              </li>
-            </>
-          )}
-
-          {/* ✅ Panier affiché uniquement si utilisateur NON connecté */}
-          {!user && (
-            <li>
-              <Link to="/cart" style={getLinkStyle("/cart")} onClick={handleLinkClick}>
-                🛒 Panier {cart.length > 0 && <span style={badgeStyle}>{cart.length}</span>}
-              </Link>
-            </li>
-          )}
-        </ul>
+        </div>
       </nav>
 
-      {isMobile && <div style={overlayStyle} onClick={() => setMenuOpen(false)} />}
+      {/* ✅ Overlay quand menu mobile est ouvert */}
+      {isMobile && <div style={overlay} onClick={() => setMenuOpen(false)} />}
+
+      {/* ✅ Menu latéral mobile */}
+      {isMobile && (
+        <div style={sideMenu}>
+          <Link to="/" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🏠 Accueil</Link>
+          <Link to="/shop" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🛍 Boutique</Link>
+          {!user && <Link to="/devenir-vendeur" style={sideMenuLink} onClick={() => setMenuOpen(false)}>📦 Devenir Vendeur</Link>}
+          {!user && <Link to="/devenir-affilie" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🤝 Devenir Affilié</Link>}
+          {user && <Link to="/dashboard-vendeur" style={sideMenuLink} onClick={() => setMenuOpen(false)}>📊 Dashboard</Link>}
+        </div>
+      )}
     </>
   );
 }

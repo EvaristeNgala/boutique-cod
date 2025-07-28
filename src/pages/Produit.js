@@ -84,9 +84,9 @@ export default function Produit() {
       {/* ✅ Détails du produit */}
       <div style={styles.card}>
         <img src={product.image} alt={product.name} style={styles.img} />
-        <h2 style={styles.name}>{product.name}</h2>
-        <p style={styles.price}>{product.price} $</p>
         <p style={styles.desc}>{product.description || "Aucune description disponible."}</p>
+            <p style={styles.price}>{product.price} $</p>
+            <p style={styles.desc}>{product.description || "Aucune description disponible."}</p>
         <button style={styles.btn} onClick={() => setShowOrder(true)}>📦 Commander</button>
       </div>
 

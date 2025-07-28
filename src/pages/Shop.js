@@ -10,7 +10,6 @@ export default function Shop() {
   const [produits, setProduits] = useState([]);
   const navigate = useNavigate();
 
-  // 🔥 Récupération des produits depuis Firestore
   useEffect(() => {
     const fetchProduits = async () => {
       try {
@@ -24,14 +23,12 @@ export default function Shop() {
     fetchProduits();
   }, []);
 
-  // ✅ Détection mobile
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Envoi commande via WhatsApp
   const handleSendOrder = () => {
     if (!selectedProduct) return;
     const msg = `📦 Nouvelle commande:
@@ -46,43 +43,24 @@ export default function Shop() {
     setFormData({ nom: "", ville: "", adresse: "", commentaire: "" });
   };
 
-  // ✅ Styles
   const styles = {
     container: { padding: "20px", background: "#f4f6f8", minHeight: "100vh" },
-    grid: { 
-      display: "grid", 
-      gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", 
-      gap: "20px", 
-      maxWidth: "1300px", 
-      margin: "auto" 
-    },
-    card: { 
-      background: "#fff",
-      boxShadow: "0 4px 10px rgba(0,0,0,0.1)", 
-      overflow: "hidden", 
-      transition: "transform 0.3s ease", 
-      cursor: "pointer" 
-    },
-    cardHover: { transform: "scale(1.03)" },
-    img: { width: "100%", height: "150px", objectFit: "cover" },
-    info: { padding: "5px", textAlign: "left" },
+    grid: { display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: "20px", maxWidth: "1300px", margin: "auto" },
+    card: { background: "#fff", boxShadow: "0 4px 10px rgba(0,0,0,0.1)", borderRadius: "12px", overflow: "hidden", transition: "transform 0.3s ease", cursor: "pointer", paddingBottom: "10px" },
+    img: { width: "100%", height: "160px", objectFit: "cover", borderTopLeftRadius: "12px", borderTopRightRadius: "12px" },
+    info: { padding: "10px", textAlign: "left" },
     name: { fontSize: "1.1rem", fontWeight: "bold", color: "#222" },
-    price: { color: "#ff9800", fontWeight: "bold", fontSize: "1rem" },
-    stock: { fontSize: "0.9rem", color: "#28a745", fontWeight: "500", marginTop: "5px" },
-    btn: { 
-      background: "#222", color: "#fff", border: "none", 
-      padding: "10px", borderRadius: "6px", width: "100%", 
-      cursor: "pointer", marginTop: "8px", transition: "background 0.3s" 
-    },
-    modalOverlay: { 
-      position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", 
-      background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", 
-      alignItems: "center", animation: "fadeIn 0.3s" 
-    },
-    modal: { 
-      background: "#fff", padding: "20px", borderRadius: "12px", width: "90%", 
-      maxWidth: "400px", boxShadow: "0 6px 15px rgba(0,0,0,0.2)", animation: "slideUp 0.3s" 
-    },
+    price: { color: "#080808ff", fontWeight: "bold", fontSize: "1rem",marginBottom: "-5px" },
+    stock: { fontSize: "0.9rem", color: "#333", marginTop: "5px" },
+    desc: { fontSize: "0.9rem", color: "#666", margin: "5px 0" },
+
+    // ✅ Style bouton amélioré
+    btnRow: { display: "flex", justifyContent: "space-between", gap: "10px", marginTop: "8px" },
+    btn: { flex: 1, background: "#fff", border: "2px solid #131212ff", padding: "8px", borderRadius: "50px", cursor: "pointer", fontWeight: "bold", fontSize: "0.9rem", transition: "0.3s" },
+    btnHover: { background: "#1a1919ff", color: "#fff" },
+
+    modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center" },
+    modal: { background: "#fff", padding: "20px", borderRadius: "12px", width: "90%", maxWidth: "400px", boxShadow: "0 6px 15px rgba(0,0,0,0.2)" },
     input: { width: "90%", padding: "10px", margin: "6px 0", border: "1px solid #ccc", borderRadius: "6px" },
     closeBtn: { background: "red", color: "#fff", border: "none", padding: "10px", borderRadius: "6px", marginTop: "10px", cursor: "pointer" }
   };
@@ -94,19 +72,29 @@ export default function Shop() {
           <p style={{ textAlign: "center", color: "#666", gridColumn: "1/-1" }}>⏳ Chargement des produits...</p>
         ) : (
           produits.map((p) => (
-            <div key={p.id} style={styles.card} onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.03)"} onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}>
+            <div key={p.id} style={styles.card}>
               <img src={p.image} alt={p.name} style={styles.img} />
               <div style={styles.info}>
-                <h3 style={styles.name}>{p.name}</h3>
+                <p style={styles.desc}>{p.description?.substring(0, 60)}...</p>
                 <p style={styles.price}>{p.price} $</p>
-                <p style={styles.stock}>🟢 {p.stock || 0} en stock</p>
-                <p style={{ fontSize: "0.9rem", color: "#666" }}>{p.description?.substring(0, 60)}...</p>
+                <p style={styles.stock}>Stock : {p.stock || "Non spécifié"}</p>
 
-                {/* ✅ Commander */}
-                <button style={styles.btn} onClick={() => setSelectedProduct(p)}>📦 Commander</button>
+                {/* ✅ Boutons alignés sur la même ligne */}
+                <div style={styles.btnRow}>
+                  <button
+                    style={styles.btn}
+                    onMouseOver={(e) => { e.target.style.background = "#050505ff"; e.target.style.color = "#fff"; }}
+                    onMouseOut={(e) => { e.target.style.background = "#fff"; e.target.style.color = "#070707ff"; }}
+                    onClick={() => setSelectedProduct(p)}
+                  >Commander</button>
 
-                {/* ✅ Voir produit */}
-                <button style={{ ...styles.btn, background: "#555" }} onClick={() => navigate(`/produit/${p.id}`)}>👁 Voir le produit</button>
+                  <button
+                    style={styles.btn}
+                    onMouseOver={(e) => { e.target.style.background = "#070707ff"; e.target.style.color = "#fff"; }}
+                    onMouseOut={(e) => { e.target.style.background = "#fff"; e.target.style.color = "#000000ff"; }}
+                    onClick={() => navigate(`/produit/${p.id}`)}
+                  >👁 Voir produit</button>
+                </div>
               </div>
             </div>
           ))
@@ -122,7 +110,7 @@ export default function Shop() {
             <input style={styles.input} placeholder="Ville" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} />
             <input style={styles.input} placeholder="Adresse" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} />
             <textarea style={styles.input} placeholder="Commentaire (facultatif)" value={formData.commentaire} onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })} />
-            <button style={styles.btn} onClick={handleSendOrder}>✅ Envoyer la commande</button>
+            <button style={{ ...styles.btn, borderRadius: "10px" }} onClick={handleSendOrder}>✅ Envoyer la commande</button>
             <button style={styles.closeBtn} onClick={() => setSelectedProduct(null)}>❌ Fermer</button>
           </div>
         </div>
