@@ -1,129 +1,136 @@
 // src/pages/Cart.jsx
 import React, { useContext, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import OrderModal from "../components/OrderModal";
 
 export default function Cart() {
-  const { cart, removeFromCart, clearCart } = useContext(CartContext);
+  const { vendeurId } = useParams();
+  const { cart, removeFromCart, clearCart, updateQuantity } = useContext(CartContext);
+  const vendeurCart = cart[vendeurId] || [];
+
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
-  // ✅ Détection de la taille de l'écran
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 600);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const total = vendeurCart.reduce((sum, item) => sum + item.price * (item.quantite || 1), 0);
 
-  // ✅ Styles
   const styles = {
     container: {
-      padding: isMobile ? "15px" : "40px",
-      background: "#f5f7fa",
-      minHeight: "80vh",
+      padding: isMobile ? "10px" : "40px",
+      background: "linear-gradient(135deg, #f5f7fa, #e8edf3)",
+      minHeight: "90vh",
       display: "flex",
       justifyContent: "center",
     },
     card: {
       width: "100%",
-      maxWidth: isMobile ? "100%" : "750px",
-      background: "white",
-      borderRadius: "12px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      padding: isMobile ? "15px" : "25px",
+      maxWidth: isMobile ? "100%" : "800px",
+      background: "#fff",
+      borderRadius: "15px",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
+      padding: isMobile ? "15px" : "30px",
+      animation: "fadeIn 0.3s ease-in-out",
     },
     title: {
       textAlign: "center",
-      fontSize: isMobile ? "1.4rem" : "1.8rem",
+      fontSize: isMobile ? "1.5rem" : "2rem",
       color: "#222",
-      marginBottom: "15px",
+      fontWeight: "700",
+      marginBottom: "20px",
     },
     empty: {
       textAlign: "center",
-      fontSize: isMobile ? "1rem" : "1.1rem",
-      color: "#555",
+      color: "#777",
+      fontSize: "1.1rem",
+      fontStyle: "italic",
     },
     list: { listStyle: "none", padding: 0, margin: 0 },
     item: {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: isMobile ? "10px 5px" : "12px 10px",
-      borderBottom: "1px solid #eee",
-      flexWrap: isMobile ? "wrap" : "nowrap",
+      padding: "15px",
+      marginBottom: "10px",
+      borderRadius: "10px",
+      background: "#fafafa",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+      transition: "transform 0.2s ease",
     },
+    itemHover: { transform: "scale(1.02)" },
     img: {
-      width: isMobile ? "50px" : "60px",
-      height: isMobile ? "50px" : "60px",
+      width: "70px",
+      height: "70px",
       objectFit: "cover",
-      borderRadius: "6px",
-      marginRight: "10px",
+      borderRadius: "10px",
+      marginRight: "15px",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
     },
-    info: {
-      display: "flex",
-      alignItems: "center",
-      flex: 1,
-      minWidth: 0,
-    },
-    productName: {
-      fontWeight: "500",
-      flex: 1,
-      fontSize: isMobile ? "0.9rem" : "1rem",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-    },
-    price: {
-      fontWeight: "bold",
-      color: "#ff9800",
-      marginRight: "10px",
-      fontSize: isMobile ? "0.9rem" : "1rem",
-    },
-    btnRemove: {
-      background: "red",
-      color: "white",
-      border: "none",
+    info: { display: "flex", alignItems: "center", flex: 1 },
+    productName: { fontWeight: "600", flex: 1, fontSize: "1.05rem", color: "#333" },
+    quantityInput: {
+      width: "60px",
+      textAlign: "center",
       borderRadius: "5px",
-      padding: isMobile ? "5px 8px" : "6px 10px",
+      border: "1px solid #ccc",
+      padding: "4px",
+      marginRight: "10px",
+      fontSize: "1rem",
+      boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+    },
+    price: { fontWeight: "700", color: "#ff9800", fontSize: "1.1rem", marginRight:"10px" },
+    btnRemove: {
+      background: "#dc3545",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      padding: "6px 10px",
       cursor: "pointer",
-      fontSize: isMobile ? "0.8rem" : "0.9rem",
+      fontWeight: "600",
       transition: "background 0.3s",
     },
+    btnRemoveHover: { background: "#c82333" },
     total: {
       textAlign: "right",
-      fontSize: isMobile ? "1.1rem" : "1.3rem",
+      fontSize: "1.4rem",
       marginTop: "15px",
-      fontWeight: "600",
-      color: "#333",
+      fontWeight: "700",
+      color: "#222",
+      borderTop: "1px solid #ddd",
+      paddingTop: "10px",
     },
     btnPrimary: {
       width: "100%",
-      background: "#ff9800",
+      background: "linear-gradient(45deg, #ff9800, #ff7300)",
       color: "white",
       border: "none",
-      padding: isMobile ? "10px" : "12px",
-      borderRadius: "6px",
+      padding: "14px",
+      borderRadius: "8px",
       cursor: "pointer",
       fontWeight: "700",
-      fontSize: isMobile ? "1rem" : "1.05rem",
+      fontSize: "1.1rem",
       marginTop: "20px",
-      transition: "background 0.3s",
+      transition: "transform 0.2s ease, background 0.3s ease",
     },
+    btnPrimaryHover: { transform: "scale(1.05)", background: "#ff7f00" },
     btnSecondary: {
       width: "100%",
       background: "#555",
       color: "white",
       border: "none",
-      padding: isMobile ? "9px" : "10px",
-      borderRadius: "6px",
+      padding: "12px",
+      borderRadius: "8px",
       cursor: "pointer",
       fontWeight: "600",
       marginTop: "10px",
-      fontSize: isMobile ? "0.95rem" : "1rem",
-      transition: "background 0.3s",
+      transition: "background 0.3s ease",
     },
+    btnSecondaryHover: { background: "#333" },
   };
 
   return (
@@ -131,48 +138,58 @@ export default function Cart() {
       <div style={styles.card}>
         <h2 style={styles.title}>🛒 Votre Panier</h2>
 
-        {cart.length === 0 ? (
+        {vendeurCart.length === 0 ? (
           <p style={styles.empty}>
-            Votre panier est vide. <a href="/shop">Voir les produits</a>
+            Votre panier est vide. <a href={`/boutique/${vendeurId}`}>Voir les produits</a>
           </p>
         ) : (
           <>
             <ul style={styles.list}>
-              {cart.map((item, index) => (
+              {vendeurCart.map((item, index) => (
                 <li key={index} style={styles.item}>
                   <div style={styles.info}>
                     <img src={item.image} alt={item.name} style={styles.img} />
                     <span style={styles.productName}>{item.name}</span>
                   </div>
-                  <span style={styles.price}>{item.price} $</span>
+
+                  {/* ✅ Champ quantité amélioré */}
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantite || 1}
+                    onChange={(e) => updateQuantity(item.id, vendeurId, parseInt(e.target.value) || 1)}
+                    style={styles.quantityInput}
+                  />
+
+                  <span style={styles.price}>{item.price * (item.quantite || 1)} $</span>
                   <button
                     style={styles.btnRemove}
-                    onMouseEnter={(e) => (e.target.style.background = "#cc0000")}
-                    onMouseLeave={(e) => (e.target.style.background = "red")}
-                    onClick={() => removeFromCart(index)}
+                    onMouseOver={(e) => (e.target.style.background = "#c82333")}
+                    onMouseOut={(e) => (e.target.style.background = "#dc3545")}
+                    onClick={() => removeFromCart(item.id, vendeurId)}
                   >
-                    Supprimer
+                    ❌
                   </button>
                 </li>
               ))}
             </ul>
 
-            <h3 style={styles.total}>Total : {total} $</h3>
+            <h3 style={styles.total}>💰 Total : {total} $</h3>
 
             <button
               style={styles.btnPrimary}
-              onMouseEnter={(e) => (e.target.style.background = "#e68a00")}
-              onMouseLeave={(e) => (e.target.style.background = "#ff9800")}
+              onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
+              onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
               onClick={() => setShowModal(true)}
             >
-              Commander
+              Passer la commande
             </button>
 
             <button
               style={styles.btnSecondary}
-              onMouseEnter={(e) => (e.target.style.background = "#333")}
-              onMouseLeave={(e) => (e.target.style.background = "#555")}
-              onClick={clearCart}
+              onMouseOver={(e) => (e.target.style.background = "#333")}
+              onMouseOut={(e) => (e.target.style.background = "#555")}
+              onClick={() => clearCart(vendeurId)}
             >
               Vider le panier
             </button>
@@ -182,10 +199,10 @@ export default function Cart() {
 
       {showModal && (
         <OrderModal
-          cart={cart}
+          cart={vendeurCart}
           total={total}
           onClose={() => setShowModal(false)}
-          clearCart={clearCart}
+          clearCart={() => clearCart(vendeurId)}
         />
       )}
     </div>

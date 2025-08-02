@@ -1,19 +1,18 @@
-// src/components/Navbar.jsx
 import React, { useContext, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import logo from "../assets/logo.png"; // ✅ Logo PNG
+import logo from "../assets/logo.png";
 
 export default function Navbar() {
   const { cart } = useContext(CartContext);
   const location = useLocation();
   const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
-  const [menuOpen, setMenuOpen] = useState(false);
+
+  // ✅ Détection si on est sur une boutique vendeur
+  const isBoutiqueVendeur = location.pathname.startsWith("/boutique/");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
@@ -26,139 +25,53 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 600);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // ✅ Styles principaux
+  // ✅ Styles
   const navStyle = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "12px 20px",
-    background: "#0d1b2a", // ✅ Bleu sombre
+    padding: "10px 15px",
+    background: "#0a1f44",
     color: "white",
     position: "sticky",
     top: 0,
     zIndex: 4000,
-    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
   };
-
-  const leftSide = { display: "flex", alignItems: "center", gap: "10px" };
   const logoStyle = { height: "40px", cursor: "pointer" };
-
-  const centerLinks = {
-    display: isMobile ? "none" : "flex",
-    gap: "25px",
-    marginLeft: "30px",
-    flex: 1,
-  };
-
-  const linkStyle = { color: "#fff", textDecoration: "none", fontSize: "1rem", fontWeight: "500" };
-
-  const rightSide = { display: "flex", alignItems: "center", gap: "12px" };
-  const connectBtn = {
-    color: "#fff",
-    textDecoration: "none",
-    background: "#1b263b",
-    padding: "7px 12px",
-    borderRadius: "5px",
-    fontSize: "0.9rem",
-    border: "1px solid #415a77",
-  };
-  const cartIcon = { color: "#fff", fontSize: "1.4rem", position: "relative" };
-  const badgeStyle = {
-    position: "absolute",
-    top: "-5px",
-    right: "-8px",
-    background: "red",
-    color: "white",
-    borderRadius: "50%",
-    padding: "2px 6px",
-    fontSize: "0.7rem",
-  };
-
-  const menuIcon = { fontSize: "1.9rem", cursor: "pointer", display: isMobile ? "block" : "none" };
-
-  // ✅ Menu latéral mobile
-  const sideMenu = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "250px",
-    height: "100%",
-    background: "#1b263b", // ✅ Bleu sombre menu
-    color: "#fff",
-    padding: "70px 20px",
-    transform: menuOpen ? "translateX(0)" : "translateX(-100%)",
-    transition: "transform 0.3s ease-in-out",
-    zIndex: 3000,
-  };
-
-  const sideMenuLink = { display: "block", color: "#fff", textDecoration: "none", padding: "12px 0", fontSize: "1.1rem", borderBottom: "1px solid #415a77" };
-
-  const overlay = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100vh",
-    background: "rgba(0,0,0,0.5)",
-    opacity: menuOpen ? 1 : 0,
-    visibility: menuOpen ? "visible" : "hidden",
-    transition: "opacity 0.3s ease",
-    zIndex: 2000,
-  };
+  const rightSide = { display: "flex", alignItems: "center", gap: "15px" };
+  const connectBtn = { color: "#fff", textDecoration: "none", background: "#007bff", padding: "6px 10px", borderRadius: "5px", fontSize: "0.9rem" };
+  const cartIcon = { color: "#fff", fontSize: "1.5rem", position: "relative", cursor: "pointer" };
+  const badgeStyle = { position: "absolute", top: "-5px", right: "-8px", background: "red", color: "white", borderRadius: "50%", padding: "2px 6px", fontSize: "0.7rem" };
 
   return (
-    <>
-      {/* ✅ Navbar */}
-      <nav style={navStyle}>
-        {/* ✅ Hamburger + Logo */}
-        <div style={leftSide}>
-          {isMobile && <span style={menuIcon} onClick={() => setMenuOpen(true)}>☰</span>}
-          <img src={logo} alt="Logo" style={logoStyle} onClick={() => navigate("/")} />
-        </div>
+    <nav style={navStyle}>
+      {/* ✅ Logo */}
+      <img src={logo} alt="Logo" style={logoStyle} onClick={() => navigate("/")} />
 
-        {/* ✅ Liens (PC uniquement) */}
-        <div style={centerLinks}>
-          <Link to="/" style={linkStyle}>Accueil</Link>
-          <Link to="/shop" style={linkStyle}>Boutique</Link>
-          {!user && <Link to="/devenir-vendeur" style={linkStyle}>Devenir Vendeur</Link>}
-          {!user && <Link to="/devenir-affilie" style={linkStyle}>Devenir Affilié</Link>}
-          {user && <Link to="/dashboard-vendeur" style={linkStyle}>Dashboard</Link>}
-        </div>
+      <div style={rightSide}>
+        {/* ✅ Se connecter / Déconnexion */}
+        {!user ? (
+          <Link to="/login" style={connectBtn}>Se connecter</Link>
+        ) : (
+          <span onClick={handleLogout} style={{ ...connectBtn, background: "red", cursor: "pointer" }}>Déconnexion</span>
+        )}
 
-        {/* ✅ Droite */}
-        <div style={rightSide}>
-          {!user ? (
-            <Link to="/login" style={connectBtn}>Se connecter</Link>
-          ) : (
-            <span onClick={handleLogout} style={{ ...connectBtn, background: "red", cursor: "pointer" }}>Déconnexion</span>
-          )}
-          {!user && (
-            <Link to="/cart" style={cartIcon}>
-              🛒 {cart.length > 0 && <span style={badgeStyle}>{cart.length}</span>}
-            </Link>
-          )}
-        </div>
-      </nav>
+        {/* ✅ Panier */}
+        <Link to="/cart" style={cartIcon}>
+          🛒 {cart.length > 0 && <span style={badgeStyle}>{cart.length}</span>}
+        </Link>
+      </div>
 
-      {/* ✅ Overlay quand menu mobile est ouvert */}
-      {isMobile && <div style={overlay} onClick={() => setMenuOpen(false)} />}
-
-      {/* ✅ Menu latéral mobile */}
-      {isMobile && (
-        <div style={sideMenu}>
-          <Link to="/" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🏠 Accueil</Link>
-          <Link to="/shop" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🛍 Boutique</Link>
-          {!user && <Link to="/devenir-vendeur" style={sideMenuLink} onClick={() => setMenuOpen(false)}>📦 Devenir Vendeur</Link>}
-          {!user && <Link to="/devenir-affilie" style={sideMenuLink} onClick={() => setMenuOpen(false)}>🤝 Devenir Affilié</Link>}
-          {user && <Link to="/dashboard-vendeur" style={sideMenuLink} onClick={() => setMenuOpen(false)}>📊 Dashboard</Link>}
+      {/* ✅ Si on n’est PAS sur une boutique vendeur, afficher menu complet */}
+      {!isBoutiqueVendeur && (
+        <div style={{ position: "absolute", left: "500px", display: "flex", gap: "20px" }}>
+          <Link to="/" style={{ color: "#fff", textDecoration: "none" }}>Accueil</Link>
+          <Link to="/shop" style={{ color: "#fff", textDecoration: "none" }}>Produits</Link>
+          {!user && <Link to="/devenir-vendeur" style={{ color: "#fff", textDecoration: "none" }}>Devenir Vendeur</Link>}
+          {!user && <Link to="/devenir-affilie" style={{ color: "#fff", textDecoration: "none" }}>Devenir Affilié</Link>}
+          {user && <Link to="/dashboard-vendeur" style={{ color: "#fff", textDecoration: "none" }}>Dashboard</Link>}
         </div>
       )}
-    </>
+    </nav>
   );
 }

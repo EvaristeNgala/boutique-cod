@@ -1,10 +1,11 @@
 // src/pages/Login.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function Login() {
+  const { vendeurId } = useParams();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
@@ -26,74 +27,104 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, form.email, form.password);
       alert("✅ Connexion réussie !");
-      navigate("/dashboard-vendeur"); // 🔥 Redirection après login
+      if (vendeurId) {
+        navigate(`/boutique/${vendeurId}`);
+      } else {
+        navigate("/dashboard-vendeur");
+      }
     } catch (error) {
       alert("❌ Erreur de connexion : " + error.message);
     }
   };
 
-  // ✅ Styles
+  // ✅ Styles améliorés
   const container = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     minHeight: "80vh",
-    background: "#f9f9f9",
+    background: "#f4f6f8",
     padding: "20px",
   };
   const box = {
     background: "#fff",
     padding: isMobile ? "20px" : "30px",
-    borderRadius: "10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+    borderRadius: "12px",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
     width: "100%",
     maxWidth: "400px",
     textAlign: "center",
+    fontFamily: "Arial, sans-serif",
   };
   const input = {
     width: "90%",
     padding: "12px",
     margin: "10px 0",
     border: "1px solid #ccc",
-    borderRadius: "5px",
+    borderRadius: "8px",
     fontSize: "1rem",
+    outline: "none",
+    transition: "border 0.3s ease",
+  };
+  const passwordWrapper = {
+    position: "relative",
+    margin: "10px 0",
+    width: "100%",
+  };
+  const toggleBtn = {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    cursor: "pointer",
+    fontSize: "1.1rem",
+    color: "#007bff",
   };
   const btn = {
     width: "100%",
     padding: "12px",
-    background: "#222",
+    background: "#0a1f44",
     color: "#fff",
     border: "none",
-    borderRadius: "5px",
+    borderRadius: "8px",
     fontWeight: "bold",
     cursor: "pointer",
-    fontSize: "1rem",
+    fontSize: "1.05rem",
     transition: "background 0.3s",
   };
-  const toggleBtn = {
-    position: "absolute",
-    right: "30px",
-    top: "37%",
-    cursor: "pointer",
-    fontSize: "0.9rem",
+  const btnHover = { background: "#092039" };
+  const linkStyle = {
+    display: "block",
+    marginTop: "15px",
     color: "#007bff",
+    textDecoration: "none",
+    fontSize: "0.95rem",
   };
-  const passwordWrapper = { position: "relative", width: "90%", margin: "auto" };
-  const linkStyle = { display: "block", marginTop: "15px", color: "#007bff", textDecoration: "none" };
 
   return (
     <div style={container}>
       <div style={box}>
-        <h2>🔐 Connexion</h2>
-        <p>Connectez-vous pour accéder à votre espace vendeur.</p>
+        <h2 style={{ color: "#0a1f44", marginBottom: "10px" }}> Connexion</h2>
+        <p style={{ fontSize: "0.95rem", color: "#555" }}>
+          {vendeurId
+            ? "Connectez-vous pour accéder à votre compte visiteur dans cette boutique."
+            : "Connectez-vous pour accéder à votre espace vendeur."}
+        </p>
 
-        <form onSubmit={handleSubmit}>
-          <input style={input} type="email" name="email" placeholder="Email" required onChange={handleChange} />
+        <form onSubmit={handleSubmit} style={{ marginTop: "15px" }}>
+          <input
+            style={input}
+            type="email"
+            name="email"
+            placeholder="Votre email"
+            required
+            onChange={handleChange}
+          />
 
-          {/* ✅ Champ mot de passe avec affichage/masquage */}
+          {/* ✅ Champ mot de passe aligné */}
           <div style={passwordWrapper}>
             <input
-              style={{ ...input, width: "100%" }}
+              style={input}
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Mot de passe"
@@ -105,12 +136,27 @@ export default function Login() {
             </span>
           </div>
 
-          <button type="submit" style={btn}>Se connecter</button>
+          <button
+            type="submit"
+            style={btn}
+            onMouseOver={(e) => (e.target.style.background = btnHover.background)}
+            onMouseOut={(e) => (e.target.style.background = "#0a1f44")}
+          >
+            Se connecter
+          </button>
         </form>
 
-        {/* ✅ Liens vers inscriptions */}
-        <Link to="/devenir-vendeur" style={linkStyle}>🛒 Devenir vendeur</Link>
-        <Link to="/devenir-affilie" style={linkStyle}>🤝 Devenir affilié</Link>
+        {/* ✅ Liens adaptés */}
+        {vendeurId ? (
+          <Link to={`/boutique/${vendeurId}/register`} style={linkStyle}>
+            Créer un compte visiteur
+          </Link>
+        ) : (
+          <>
+            <Link to="/devenir-vendeur" style={linkStyle}>🛒 Devenir vendeur</Link>
+            <Link to="/devenir-affilie" style={linkStyle}>🤝 Devenir affilié</Link>
+          </>
+        )}
       </div>
     </div>
   );
