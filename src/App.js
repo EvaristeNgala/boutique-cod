@@ -1,4 +1,4 @@
-// src/App.js
+// ✅ src/App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
@@ -6,16 +6,20 @@ import Navbar from "./components/Navbar";
 import NavbarVendeur from "./components/NavbarVendeur";
 import Shop from "./pages/Shop";
 import Home from "./pages/Home";
-import Cart from "./pages/cart"; // ✅ corrigé avec minuscule
+import Cart from "./pages/cart";
 import Login from "./pages/Login";
 import DevenirVendeur from "./pages/DevenirVendeur";
 import DevenirAffilie from "./pages/DevenirAffilie";
 import DashboardVendeur from "./pages/DashboardVendeur";
 import Produit from "./pages/Produit";
-import BoutiqueVendeur from "./pages/BoutiqueVendeur";
+//import BoutiqueVendeur from "./pages/BoutiqueVendeur";
 import RegisterVisitor from "./pages/RegisterVisitor";
+import HomeBoutique from "./pages/HomeBoutique";
+import ProduitsBoutique from "./pages/ProduitsBoutique";
+import AproposBoutique from "./pages/AproposBoutique";
+import ContactBoutique from "./pages/ContactBoutique";
 
-// ✅ Layout qui choisit la bonne navbar
+// ✅ Layout dynamique : affiche NavbarVendeur uniquement pour les pages boutique
 function Layout({ children }) {
   const location = useLocation();
   const isVendeurSite = location.pathname.startsWith("/boutique/");
@@ -33,21 +37,29 @@ export default function App() {
       <Router>
         <Layout>
           <Routes>
-            {/* ✅ Routes principales */}
+            {/* ✅ Pages publiques */}
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/produit/:id" element={<Produit />} />
+
+            {/* ✅ Authentification Vendeur */}
+            <Route path="/login" element={<Login />} /> {/* Connexion Vendeur */}
             <Route path="/devenir-vendeur" element={<DevenirVendeur />} />
             <Route path="/devenir-affilie" element={<DevenirAffilie />} />
             <Route path="/dashboard-vendeur" element={<DashboardVendeur />} />
-            <Route path="/produit/:id" element={<Produit />} />
 
-            {/* ✅ Routes vendeur */}
-            <Route path="/boutique/:vendeurId" element={<BoutiqueVendeur />} />
-            <Route path="/boutique/:vendeurId/cart" element={<Cart />} /> 
+            {/* ✅ Espace Boutique Vendeur */}
+            <Route path="/boutique/:vendeurId/cart" element={<Cart />} />
+
+            {/* ✅ Authentification Visiteur pour boutique */}
             <Route path="/boutique/:vendeurId/register" element={<RegisterVisitor />} />
-            <Route path="/boutique/:vendeurId/login" element={<Login />} />
+            <Route path="/boutique/:vendeurId/login" element={<Login />} /> {/* Login visiteur */}
+            <Route path="/boutique/:vendeurId" element={<HomeBoutique />} />
+            <Route path="/boutique/:vendeurId/produits" element={<ProduitsBoutique />} />
+            <Route path="/boutique/:vendeurId/apropos" element={<AproposBoutique />} />
+            <Route path="/boutique/:vendeurId/contact" element={<ContactBoutique />} />
+
           </Routes>
         </Layout>
       </Router>

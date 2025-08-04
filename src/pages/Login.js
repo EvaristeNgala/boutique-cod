@@ -1,163 +1,134 @@
-// src/pages/Login.jsx
+// ✅ src/pages/Login.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { logoutUser } from "../utils/logout";
+import NavbarVendeur from "../components/NavbarVendeur"; // ✅ utilise ton navbar vendeur existant
 
 export default function Login() {
   const { vendeurId } = useParams();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
-  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [userRole, setUserRole] = useState(""); // ✅ rôle détecté
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
   const navigate = useNavigate();
 
-  // ✅ Détection mobile
+  // ✅ Détection si déjà connecté
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Vérifier si c’est un vendeur
+        const vendeurSnap = await getDoc(doc(db, "vendeurs", user.uid));
+        if (vendeurSnap.exists()) {
+          setUserRole("vendeur");
+          return;
+        }
+        // Vérifier si c’est un visiteur
+        const visitorSnap = await getDoc(doc(db, "visitors", user.uid));
+        if (visitorSnap.exists()) {
+          setUserRole("visiteur");
+          return;
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 600);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Gestion input
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrorMsg("");
+  };
 
-  // ✅ Connexion Firebase
+  // ✅ Soumission du formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
+
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
-      alert("✅ Connexion réussie !");
-      if (vendeurId) {
-        navigate(`/boutique/${vendeurId}`);
-      } else {
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      const user = userCredential.user;
+
+      const vendeurRef = doc(db, "vendeurs", user.uid);
+      const vendeurSnap = await getDoc(vendeurRef);
+
+      if (vendeurSnap.exists()) {
+        setUserRole("vendeur");
         navigate("/dashboard-vendeur");
+        return;
       }
-    } catch (error) {
-      alert("❌ Erreur de connexion : " + error.message);
+
+      const visitorRef = doc(db, "visitors", user.uid);
+      const visitorSnap = await getDoc(visitorRef);
+
+      if (visitorSnap.exists()) {
+        const data = visitorSnap.data();
+        if (!vendeurId || data.vendeurId !== vendeurId) {
+          setErrorMsg("❌ Ce compte visiteur n’est pas autorisé pour cette boutique.");
+          await logoutUser(navigate);
+          return;
+        }
+        setUserRole("visiteur");
+        navigate(`/boutique/${data.vendeurId}`);
+        return;
+      }
+
+      setErrorMsg("❌ Compte introuvable ou rôle non défini.");
+      await logoutUser(navigate);
+    } catch (err) {
+      setErrorMsg("❌ Erreur : " + err.message);
     }
   };
 
-  // ✅ Styles améliorés
-  const container = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "80vh",
-    background: "#f4f6f8",
-    padding: "20px",
-  };
-  const box = {
-    background: "#fff",
-    padding: isMobile ? "20px" : "30px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "400px",
-    textAlign: "center",
-    fontFamily: "Arial, sans-serif",
-  };
-  const input = {
-    width: "90%",
-    padding: "12px",
-    margin: "10px 0",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    fontSize: "1rem",
-    outline: "none",
-    transition: "border 0.3s ease",
-  };
-  const passwordWrapper = {
-    position: "relative",
-    margin: "10px 0",
-    width: "100%",
-  };
-  const toggleBtn = {
-    position: "absolute",
-    right: "12px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    cursor: "pointer",
-    fontSize: "1.1rem",
-    color: "#007bff",
-  };
-  const btn = {
-    width: "100%",
-    padding: "12px",
-    background: "#0a1f44",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "1.05rem",
-    transition: "background 0.3s",
-  };
-  const btnHover = { background: "#092039" };
-  const linkStyle = {
-    display: "block",
-    marginTop: "15px",
-    color: "#007bff",
-    textDecoration: "none",
-    fontSize: "0.95rem",
+  const s = {
+    container: { display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh", background: "#f4f6f8" },
+    box: { background: "#fff", padding: isMobile ? 20 : 30, borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", width: "100%", maxWidth: 400, textAlign: "center" },
+    input: { width: "90%", padding: 12, margin: "10px 0", border: "1px solid #ccc", borderRadius: 8 },
+    btn: { width: "100%", padding: 12, background: "#0a1f44", color: "#fff", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" },
+    error: { color: "red", fontWeight: "bold", marginTop: 10 }
   };
 
   return (
-    <div style={container}>
-      <div style={box}>
-        <h2 style={{ color: "#0a1f44", marginBottom: "10px" }}> Connexion</h2>
-        <p style={{ fontSize: "0.95rem", color: "#555" }}>
-          {vendeurId
-            ? "Connectez-vous pour accéder à votre compte visiteur dans cette boutique."
-            : "Connectez-vous pour accéder à votre espace vendeur."}
-        </p>
+    <div>
+      {/* ✅ Si c’est un vendeur connecté, on affiche directement son Navbar */}
+      {userRole === "vendeur" && <NavbarVendeur />}
 
-        <form onSubmit={handleSubmit} style={{ marginTop: "15px" }}>
-          <input
-            style={input}
-            type="email"
-            name="email"
-            placeholder="Votre email"
-            required
-            onChange={handleChange}
-          />
-
-          {/* ✅ Champ mot de passe aligné */}
-          <div style={passwordWrapper}>
-            <input
-              style={input}
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Mot de passe"
-              required
-              onChange={handleChange}
-            />
-            <span style={toggleBtn} onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? "🙈" : "👁️"}
-            </span>
-          </div>
-
-          <button
-            type="submit"
-            style={btn}
-            onMouseOver={(e) => (e.target.style.background = btnHover.background)}
-            onMouseOut={(e) => (e.target.style.background = "#0a1f44")}
-          >
-            Se connecter
+      {/* ✅ Si l’utilisateur est déjà vendeur, pas besoin de formulaire */}
+      {userRole === "vendeur" ? (
+        <div style={{ textAlign: "center", marginTop: "50px" }}>
+          <h2>✅ Vous êtes déjà connecté en tant que vendeur</h2>
+          <button style={s.btn} onClick={() => navigate("/dashboard-vendeur")}>
+            Aller au Dashboard
           </button>
-        </form>
-
-        {/* ✅ Liens adaptés */}
-        {vendeurId ? (
-          <Link to={`/boutique/${vendeurId}/register`} style={linkStyle}>
-            Créer un compte visiteur
-          </Link>
-        ) : (
-          <>
-            <Link to="/devenir-vendeur" style={linkStyle}>🛒 Devenir vendeur</Link>
-            <Link to="/devenir-affilie" style={linkStyle}>🤝 Devenir affilié</Link>
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        // ✅ Sinon, afficher le formulaire de login
+        <div style={s.container}>
+          <div style={s.box}>
+            <h2>Connexion</h2>
+            <form onSubmit={handleSubmit}>
+              <input style={s.input} type="email" name="email" placeholder="Email" onChange={handleChange} required />
+              <input style={s.input} type={showPassword ? "text" : "password"} name="password" placeholder="Mot de passe" onChange={handleChange} required />
+              <span onClick={() => setShowPassword(!showPassword)} style={{ cursor: "pointer" }}>{showPassword ? "🙈" : "👁️"}</span>
+              <button style={s.btn} type="submit">Se connecter</button>
+            </form>
+            {errorMsg && <p style={s.error}>{errorMsg}</p>}
+            {vendeurId ? (
+              <Link to={`/boutique/${vendeurId}/register`}>Créer un compte visiteur</Link>
+            ) : (
+              <Link to="/devenir-vendeur">Créer un compte vendeur</Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

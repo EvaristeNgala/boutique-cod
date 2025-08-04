@@ -1,157 +1,98 @@
+// ✅ src/pages/DevenirVendeur.jsx (sans pourcentageAffiliation)
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 export default function DevenirVendeur() {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     nom: "",
     email: "",
-    telephone: "",
-    nomBoutique: "",
     password: "",
+    nomBoutique: "",
+    telephone: "",
   });
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
-  const [showPassword, setShowPassword] = useState(false); // ✅ État pour afficher/cacher le mot de passe
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 600);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const visitorRef = doc(db, "visitors", user.uid);
+        const visitorSnap = await getDoc(visitorRef);
+        if (visitorSnap.exists()) {
+          setErrorMsg("❌ Vous êtes actuellement connecté comme visiteur. Déconnectez-vous avant de créer un compte vendeur.");
+        }
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (errorMsg) return;
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
       const user = userCredential.user;
 
       await setDoc(doc(db, "vendeurs", user.uid), {
-        nom: formData.nom,
-        email: formData.email,
-        telephone: formData.telephone,
-        nomBoutique: formData.nomBoutique,
-        createdAt: serverTimestamp(),
+        nom: form.nom,
+        email: form.email,
+        telephone: form.telephone,
+        nomBoutique: form.nomBoutique,
+        role: "vendeur",
+        createdAt: new Date().toISOString(),
       });
 
-      alert("✅ Inscription réussie !");
-      setFormData({ nom: "", email: "", telephone: "", nomBoutique: "", password: "" });
+      alert("✅ Compte vendeur créé avec succès !");
       navigate("/dashboard-vendeur");
     } catch (error) {
-      alert("Erreur : " + error.message);
+      alert("❌ Erreur : " + error.message);
     }
   };
 
-  // ✅ Styles
-  const container = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "80vh",
-    background: "#f9f9f9",
-    padding: isMobile ? "15px" : "40px",
-  };
-
-  const box = {
-    background: "#fff",
-    padding: isMobile ? "20px" : "30px",
-    borderRadius: "10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "500px",
-    textAlign: "center",
-  };
-
-  const input = {
-    width: "90%",
-    padding: "12px",
-    margin: "8px 0",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    fontSize: "1rem",
-  };
-
-  const passwordWrapper = { position: "relative", width: "90%", margin: "8px auto" };
-
-  const toggleBtn = {
-    position: "absolute",
-    right: "10px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "1.1rem",
-  };
-
-  const btn = {
-    width: "100%",
-    padding: "12px",
-    background: "#222",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "1rem",
-    transition: "background 0.3s",
-    marginTop: "10px",
-  };
-
-  const secondaryBtn = {
-    width: "100%",
-    padding: "10px",
-    background: "#fff",
-    color: "#222",
-    border: "1px solid #222",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginTop: "10px",
-    fontWeight: "bold",
-  };
-
   return (
-    <div style={container}>
-      <div style={box}>
-        <h2>🛒 Devenir Vendeur</h2>
-        <p>Remplissez ce formulaire pour proposer vos produits sur notre plateforme.</p>
+    <div style={{ textAlign: "center", marginTop: "40px" }}>
+      <h2>🛒 Créer un compte vendeur</h2>
+      {errorMsg && <p style={{ color: "red", fontWeight: "bold" }}>{errorMsg}</p>}
 
-        <form onSubmit={handleSubmit}>
-          <input style={input} type="text" name="nom" placeholder="Nom complet" value={formData.nom} onChange={handleChange} required />
-          <input style={input} type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-          <input style={input} type="tel" name="telephone" placeholder="Téléphone" value={formData.telephone} onChange={handleChange} required />
-          <input style={input} type="text" name="nomBoutique" placeholder="KinMarché" value={formData.nomBoutique} onChange={handleChange} required />
-
-          {/* ✅ Champ mot de passe avec toggle 👁️ */}
-          <div style={passwordWrapper}>
-            <input
-              style={{ ...input, width: "100%", margin: 0 }}
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Mot de passe"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-            <button type="button" style={toggleBtn} onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? "🙈" : "👁️"}
-            </button>
-          </div>
-
-          <button type="submit" style={btn}>📩 Envoyer ma demande</button>
+      {!errorMsg && (
+        <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "20px auto" }}>
+          <input name="nom" placeholder="Votre nom complet" required onChange={handleChange} style={styles.input} />
+          <input name="nomBoutique" placeholder="Nom de la boutique" required onChange={handleChange} style={styles.input} />
+          <input name="telephone" placeholder="Téléphone" required onChange={handleChange} style={styles.input} />
+          <input type="email" name="email" placeholder="Email" required onChange={handleChange} style={styles.input} />
+          <input type="password" name="password" placeholder="Mot de passe" required onChange={handleChange} style={styles.input} />
+          <button type="submit" style={styles.btn}>✅ Créer mon compte vendeur</button>
         </form>
-
-        <button onClick={() => navigate("/login")} style={secondaryBtn}>
-          🔑 Se connecter
-        </button>
-      </div>
+      )}
     </div>
   );
 }
+
+const styles = {
+  input: {
+    width: "100%",
+    padding: "12px",
+    margin: "8px 0",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    fontSize: "1rem",
+  },
+  btn: {
+    width: "100%",
+    padding: "12px",
+    background: "#0a1f44",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+};
