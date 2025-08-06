@@ -123,9 +123,9 @@ export default function ProduitsBoutique() {
 // Styles identiques à ta version actuelle
 
 const styles = {
-  container: { padding: "20px" },
+  container: { padding: "15px" },
   search: { width: "95%", padding: "10px", marginBottom: "20px", border: "1px solid #ccc", borderRadius: "5px", fontSize: "16px" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "20px" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "7px" },
   card: { border: "1px solid #ddd", borderRadius: "8px", padding: "10px", background: "#fff", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" },
   imageContainer: { position: "relative", overflow: "hidden", borderRadius: "8px", marginBottom: "5px" },
   img: { width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" },
