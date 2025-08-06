@@ -11,7 +11,6 @@ export default function NavbarVendeur() {
   const { cart } = useContext(CartContext);
   const navigate = useNavigate();
   const location = useLocation();
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [visitorName, setVisitorName] = useState("");
@@ -77,8 +76,6 @@ export default function NavbarVendeur() {
     hamburger: {
       fontSize: "2rem",
       cursor: "pointer",
-      userSelect: "none",
-      transition: "0.3s",
     },
     userInfo: {
       marginRight: 10,
@@ -88,30 +85,32 @@ export default function NavbarVendeur() {
       color: "#fff",
       textDecoration: "none",
       fontWeight: "bold",
-      padding: "6px 10px",
-      borderRadius: "5px",
-      transition: "0.3s",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      padding: "12px 15px",
+      borderBottom: "1px solid rgba(255,255,255,0.1)",
     },
     menu: {
       background: "#0a1f44",
-      padding: 10,
       display: "flex",
       flexDirection: "column",
-      gap: "10px",
-      borderTop: "1px solid rgba(255,255,255,0.3)",
+      position: "absolute",
+      top: "70px",
+      left: 0,
+      width: "50%",
+      height: "100vh",
+      boxShadow: "2px 0 6px rgba(0,0,0,0.3)",
+      zIndex: 999,
     },
     button: {
       background: "transparent",
       border: "1px solid #fff",
       color: "#fff",
-      padding: "8px 12px",
+      padding: "10px 15px",
+      margin: "10px",
       borderRadius: "5px",
       cursor: "pointer",
-      transition: "0.3s",
-    },
-    buttonHover: {
-      backgroundColor: "#fff",
-      color: "#0a1f44",
     },
   };
 
@@ -119,36 +118,23 @@ export default function NavbarVendeur() {
     <nav style={styles.nav}>
       <div style={styles.container}>
         <div onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburger}>☰</div>
-        <img src={logo} alt="logo" style={styles.logo} onClick={() => navigate(`/boutique/${vendeurId}`)} />
+        <img src={logo} alt="logo" style={styles.logo} onClick={() => navigate(`/boutique/${vendeurId}/produits`)} />
         <div>
-          {userRole && <span style={styles.userInfo}>{visitorName} </span>}
+          {userRole && <span style={styles.userInfo}>{visitorName}</span>}
           <Link to={`/boutique/${vendeurId}/cart`} style={styles.link}>🛒 {totalItems}</Link>
         </div>
       </div>
 
       {menuOpen && (
         <div ref={menuRef} style={styles.menu}>
-          {/* ✅ Liens visibles pour tous */}
           <Link to={`/boutique/${vendeurId}`} style={styles.link}>Accueil</Link>
-          <Link to={`/boutique/${vendeurId}/produits`} style={styles.link}>Produits</Link>
+          <Link to={`/boutique/${vendeurId}/produits`} style={styles.link}>Boutique</Link>
           <Link to={`/boutique/${vendeurId}/apropos`} style={styles.link}>À propos</Link>
           <Link to={`/boutique/${vendeurId}/contact`} style={styles.link}>Contact</Link>
-
           {userRole ? (
             <>
-              {/* ✅ Lien Dashboard uniquement pour vendeur */}
-              {userRole === "vendeur" && (
-                <Link to="/dashboard-vendeur" style={styles.link}>Dashboard</Link>
-              )}
-
-              <button
-                onClick={() => logoutUser(navigate, vendeurId)}
-                style={styles.button}
-                onMouseOver={(e) => Object.assign(e.target.style, styles.buttonHover)}
-                onMouseOut={(e) => Object.assign(e.target.style, styles.button)}
-              >
-                Déconnexion
-              </button>
+              {userRole === "vendeur" && <Link to="/dashboard-vendeur" style={styles.link}>📊 Dashboard</Link>}
+              <button onClick={() => logoutUser(navigate, vendeurId)} style={styles.button}>🚪 Déconnexion</button>
             </>
           ) : (
             <>
