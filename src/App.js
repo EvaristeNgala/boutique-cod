@@ -18,7 +18,7 @@ import HomeBoutique from "./pages/HomeBoutique";
 import ProduitsBoutique from "./pages/ProduitsBoutique";
 import AproposBoutique from "./pages/AproposBoutique";
 import ContactBoutique from "./pages/ContactBoutique";
-
+import ProduitDetail from "./pages/ProduitDetail";
 // ✅ Layout dynamique : affiche NavbarVendeur uniquement pour les pages boutique
 function Layout({ children }) {
   const location = useLocation();
@@ -59,6 +59,8 @@ export default function App() {
             <Route path="/boutique/:vendeurId/produits" element={<ProduitsBoutique />} />
             <Route path="/boutique/:vendeurId/apropos" element={<AproposBoutique />} />
             <Route path="/boutique/:vendeurId/contact" element={<ContactBoutique />} />
+            <Route path="/boutique/:vendeurId/produit/:produitId" element={<ProduitDetail />} />
+
 
           </Routes>
         </Layout>

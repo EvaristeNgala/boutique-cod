@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
-export default function OrderModal({ cart, total, onClose, clearCart }) {
+export default function OrderModal({ cart, total, onClose, clearCart, vendeurId }) {
   const [form, setForm] = useState({ name: "", country: "", city: "", address: "", phone: "" });
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  const [vendeurPhone, setVendeurPhone] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 600);
@@ -12,14 +15,37 @@ export default function OrderModal({ cart, total, onClose, clearCart }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    async function fetchVendeurPhone() {
+      if (!vendeurId) return;
+      try {
+        const docRef = doc(db, "vendeurs", vendeurId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setVendeurPhone(data.telephone || null);
+        }
+      } catch (error) {
+        console.error("Erreur récupération vendeur:", error);
+      }
+    }
+    fetchVendeurPhone();
+  }, [vendeurId]);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!vendeurPhone) {
+      alert("Le numéro WhatsApp du vendeur est introuvable.");
+      return;
+    }
     setSending(true);
 
-    // ✅ Construire message WhatsApp avec les infos client + produits
-    const produits = cart.map((item) => `• ${item.name} - ${item.price}$`).join("%0A");
+    const produits = cart.map((item) =>
+      `• ${item.nom || item.name} - Taille: ${item.taille || "N/A"} - Couleur: ${item.couleur || "N/A"} - Prix: ${item.price}$`
+    ).join("%0A");
+
     const message = `📦 *Nouvelle Commande*%0A
 👤 Nom: ${form.name}%0A
 🌍 Pays: ${form.country}%0A
@@ -30,27 +56,19 @@ export default function OrderModal({ cart, total, onClose, clearCart }) {
 💰 Total: ${total} $%0A
 ✅ *Paiement à la livraison*`;
 
-    // ✅ Numéro WhatsApp du vendeur (remplace par le tien)
-    const vendeurWhatsApp = "243823676439"; // ← à personnaliser
+    const cleanPhone = vendeurPhone.replace(/\D/g, "");
+    const url = `https://wa.me/${cleanPhone}?text=${message}`;
 
-    // ✅ Lien vers WhatsApp
-    const url = `https://wa.me/${vendeurWhatsApp}?text=${message}`;
-
-    // ✅ Ouvre WhatsApp (mobile/web)
     window.open(url, "_blank");
 
-    // ✅ Affichage succès après ouverture WhatsApp
     setTimeout(() => {
       setSending(false);
       setSuccess(true);
       clearCart();
-
-      // Ferme modal après 2.5s
       setTimeout(() => onClose(), 2500);
     }, 1200);
   };
 
-  // ✅ Styles dynamiques
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -100,7 +118,7 @@ export default function OrderModal({ cart, total, onClose, clearCart }) {
   };
 
   const btnStyle = {
-    background: sending ? "#999" : "#25D366", // ✅ WhatsApp vert
+    background: sending ? "#999" : "#25D366",
     color: "#fff",
     border: "none",
     padding: "12px",
@@ -122,28 +140,26 @@ export default function OrderModal({ cart, total, onClose, clearCart }) {
     animation: "fadeIn 0.5s ease",
   };
 
-  // ✅ Ajout animations CSS
-  useEffect(() => {
-    const styleTag = document.createElement("style");
-    styleTag.innerHTML = `
-      @keyframes popupAnim {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-    `;
-    document.head.appendChild(styleTag);
-  }, []);
-
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <button style={closeBtn} onClick={onClose}>✖</button>
-        <h2>📝 Finaliser votre commande</h2>
+        <h2 style={{ marginBottom: "10px" }}>Finaliser votre commande</h2>
         <p>Total à payer : <strong>{total} $</strong> (paiement à la livraison)</p>
+
+        {/* 🔹 Message au-dessus du formulaire */}
+        {!success && (
+          <div style={{
+            background: "#ffefc1",
+            padding: "8px",
+            borderRadius: "6px",
+            color: "#444",
+            fontWeight: "600",
+            margin: "10px 0"
+          }}>
+            Veuillez entrer vos informations
+          </div>
+        )}
 
         {success ? (
           <div style={successStyle}>✅ Commande envoyée sur WhatsApp !</div>

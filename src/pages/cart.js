@@ -18,7 +18,10 @@ export default function Cart() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const total = vendeurCart.reduce((sum, item) => sum + item.price * (item.quantite || 1), 0);
+  const total = vendeurCart.reduce(
+    (sum, item) => sum + item.price * (item.quantite || 1),
+    0
+  );
 
   const styles = {
     container: {
@@ -62,7 +65,6 @@ export default function Cart() {
       boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
       transition: "transform 0.2s ease",
     },
-    itemHover: { transform: "scale(1.02)" },
     img: {
       width: "70px",
       height: "70px",
@@ -72,7 +74,8 @@ export default function Cart() {
       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
     },
     info: { display: "flex", alignItems: "center", flex: 1 },
-    productName: { fontWeight: "600", flex: 1, fontSize: "1.05rem", color: "#333" },
+    productName: { fontWeight: "600", fontSize: "1.05rem", color: "#333" },
+    colorDetail: { fontSize: "0.9rem", color: "#666", marginTop: "4px" },
     quantityInput: {
       width: "60px",
       textAlign: "center",
@@ -83,7 +86,7 @@ export default function Cart() {
       fontSize: "1rem",
       boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
     },
-    price: { fontWeight: "700", color: "#ff9800", fontSize: "1.1rem", marginRight:"10px" },
+    price: { fontWeight: "700", color: "#ff9800", fontSize: "1.1rem", marginRight: "10px" },
     btnRemove: {
       background: "#dc3545",
       color: "#fff",
@@ -94,7 +97,6 @@ export default function Cart() {
       fontWeight: "600",
       transition: "background 0.3s",
     },
-    btnRemoveHover: { background: "#c82333" },
     total: {
       textAlign: "right",
       fontSize: "1.4rem",
@@ -117,7 +119,6 @@ export default function Cart() {
       marginTop: "20px",
       transition: "transform 0.2s ease, background 0.3s ease",
     },
-    btnPrimaryHover: { transform: "scale(1.05)", background: "#ff7f00" },
     btnSecondary: {
       width: "100%",
       background: "#555",
@@ -130,7 +131,6 @@ export default function Cart() {
       marginTop: "10px",
       transition: "background 0.3s ease",
     },
-    btnSecondaryHover: { background: "#333" },
   };
 
   return (
@@ -140,7 +140,8 @@ export default function Cart() {
 
         {vendeurCart.length === 0 ? (
           <p style={styles.empty}>
-            Votre panier est vide. <a href={`/boutique/${vendeurId}`}>Voir les produits</a>
+            Votre panier est vide.{" "}
+            <a href={`/boutique/${vendeurId}/produits`}>Voir les produits</a>
           </p>
         ) : (
           <>
@@ -148,25 +149,39 @@ export default function Cart() {
               {vendeurCart.map((item, index) => (
                 <li key={index} style={styles.item}>
                   <div style={styles.info}>
-                    <img src={item.image} alt={item.name} style={styles.img} />
-                    <span style={styles.productName}>{item.name}</span>
+                    <img src={item.image} alt={item.nom || item.name} style={styles.img} />
+                    <div>
+                      <span style={styles.productName}>
+                        {item.nom || item.name}{" "}
+                        <span style={{ fontWeight: "normal", fontSize: "0.9rem", marginLeft: "10px" }}>
+                          Taille : <strong>{item.taille || "N/A"}</strong>
+                        </span>
+                      </span>
+                      <div style={styles.colorDetail}>
+                        Couleur : <strong>{item.couleur || "N/A"}</strong>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* ✅ Champ quantité amélioré */}
                   <input
                     type="number"
                     min="1"
                     value={item.quantite || 1}
-                    onChange={(e) => updateQuantity(item.id, vendeurId, parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateQuantity(item.id, vendeurId, parseInt(e.target.value) || 1, item.taille, item.couleur)
+                    }
                     style={styles.quantityInput}
                   />
 
-                  <span style={styles.price}>{item.price * (item.quantite || 1)} $</span>
+                  <span style={styles.price}>
+                    {(item.price * (item.quantite || 1)).toFixed(2)} $
+                  </span>
+
                   <button
                     style={styles.btnRemove}
+                    onClick={() => removeFromCart(item.id, vendeurId, item.taille, item.couleur)}
                     onMouseOver={(e) => (e.target.style.background = "#c82333")}
                     onMouseOut={(e) => (e.target.style.background = "#dc3545")}
-                    onClick={() => removeFromCart(item.id, vendeurId)}
                   >
                     ❌
                   </button>
@@ -174,12 +189,12 @@ export default function Cart() {
               ))}
             </ul>
 
-            <h3 style={styles.total}>💰 Total : {total} $</h3>
+            <h3 style={styles.total}>💰 Total : {total.toFixed(2)} $</h3>
 
             <button
               style={styles.btnPrimary}
-              onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
-              onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
+              onMouseOver={(e) => (e.target.style.transform = "scale(1.05)") }
+              onMouseOut={(e) => (e.target.style.transform = "scale(1)") }
               onClick={() => setShowModal(true)}
             >
               Passer la commande
@@ -203,6 +218,7 @@ export default function Cart() {
           total={total}
           onClose={() => setShowModal(false)}
           clearCart={() => clearCart(vendeurId)}
+          vendeurId={vendeurId} // 🔹 Ajout important
         />
       )}
     </div>

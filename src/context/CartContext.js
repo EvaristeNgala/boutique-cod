@@ -1,70 +1,100 @@
-// src/context/CartContext.js
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : {};
-  });
+  const [cart, setCart] = useState({}); // panier organisé par vendeurId
 
-  // ✅ Sauvegarde automatique dans localStorage
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  // ✅ Ajouter un produit au panier d'un vendeur
+  // Ajouter un produit au panier
   const addToCart = (product, vendeurId) => {
-    setCart((prevCart) => {
-      const vendeurItems = prevCart[vendeurId] || [];
-      const existingItem = vendeurItems.find((item) => item.id === product.id);
+    setCart(prevCart => {
+      const vendeurCart = prevCart[vendeurId] || [];
 
-      let updatedItems;
-      if (existingItem) {
-        // Si le produit existe déjà → augmente la quantité
-        updatedItems = vendeurItems.map((item) =>
-          item.id === product.id ? { ...item, quantite: (item.quantite || 1) + 1 } : item
-        );
+      // Chercher produit identique par id + options
+      const index = vendeurCart.findIndex(
+        item =>
+          item.id === product.id &&
+          item.taille === product.taille &&
+          item.couleur === product.couleur
+      );
+
+      let newVendeurCart;
+
+      if (index !== -1) {
+        // Produit existant : incrémenter quantité
+        newVendeurCart = [...vendeurCart];
+        newVendeurCart[index].quantite += product.quantite || 1;
       } else {
-        // Sinon → ajoute un nouveau produit
-        updatedItems = [...vendeurItems, { ...product, quantite: 1 }];
+        // Nouveau produit : ajouter au panier
+        newVendeurCart = [...vendeurCart, { ...product, quantite: product.quantite || 1 }];
       }
 
-      return { ...prevCart, [vendeurId]: updatedItems };
+      return {
+        ...prevCart,
+        [vendeurId]: newVendeurCart,
+      };
     });
   };
 
-  // ✅ Supprimer un produit du panier d'un vendeur
-  const removeFromCart = (productId, vendeurId) => {
-    setCart((prevCart) => {
-      const vendeurItems = prevCart[vendeurId]?.filter((item) => item.id !== productId) || [];
-      return { ...prevCart, [vendeurId]: vendeurItems };
+  // Supprimer un produit du panier
+  const removeFromCart = (productId, vendeurId, taille, couleur) => {
+    setCart(prevCart => {
+      const vendeurCart = prevCart[vendeurId] || [];
+      const newVendeurCart = vendeurCart.filter(
+        item =>
+          !(item.id === productId && item.taille === taille && item.couleur === couleur)
+      );
+      return {
+        ...prevCart,
+        [vendeurId]: newVendeurCart,
+      };
     });
   };
 
-  // ✅ Vider tout le panier d'un vendeur
+  // Mettre à jour la quantité d'un produit
+  const updateQuantity = (productId, vendeurId, quantite, taille, couleur) => {
+    if (quantite < 1) return;
+    setCart(prevCart => {
+      const vendeurCart = prevCart[vendeurId] || [];
+      const newVendeurCart = vendeurCart.map(item => {
+        if (
+          item.id === productId &&
+          item.taille === taille &&
+          item.couleur === couleur
+        ) {
+          return { ...item, quantite };
+        }
+        return item;
+      });
+      return {
+        ...prevCart,
+        [vendeurId]: newVendeurCart,
+      };
+    });
+  };
+
+  // Vider le panier d'un vendeur
   const clearCart = (vendeurId) => {
-    setCart((prevCart) => {
+    setCart(prevCart => {
       const newCart = { ...prevCart };
       delete newCart[vendeurId];
       return newCart;
     });
   };
 
-  // ✅ Mettre à jour la quantité d’un produit
-  const updateQuantity = (productId, vendeurId, newQuantity) => {
-    setCart((prevCart) => {
-      const vendeurItems = prevCart[vendeurId]?.map((item) =>
-        item.id === productId ? { ...item, quantite: newQuantity } : item
-      ) || [];
-      return { ...prevCart, [vendeurId]: vendeurItems };
-    });
-  };
-
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, updateQuantity }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
+
+export const useCart = () => useContext(CartContext);

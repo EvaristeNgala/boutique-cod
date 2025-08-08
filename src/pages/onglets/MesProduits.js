@@ -100,7 +100,7 @@ const styles = {
     borderBottom: "1px solid #eee", // ✅ fine ligne de séparation
   },
   row: { background: "#fff" }, // ✅ pas d’alternance de couleurs
-  img: { width: 80, height: 80, objectFit: "cover", borderRadius: 8 },
+  img: { width: 80, height: 80, objectFit: "cover"},
   editBtn: {
     background: "#1e90ff",
     color: "#fff",
