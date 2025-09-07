@@ -16,6 +16,7 @@ import ProduitsBoutique from "./pages/ProduitsBoutique";
 import AproposBoutique from "./pages/AproposBoutique";
 import ContactBoutique from "./pages/ContactBoutique";
 import ProduitDetail from "./pages/ProduitDetail";
+import { Home } from "lucide-react";
 
 // ✅ Layout dynamique : affiche NavbarVendeur uniquement pour les pages boutique
 function Layout({ children }) {
@@ -38,7 +39,7 @@ export default function App() {
         <Layout>
           <Routes>
             {/* ✅ Redirection "/" vers la page ProduitsBoutique du vendeur par défaut */}
-            <Route path="/" element={<Navigate to={`/boutique/${vendeurId}/produits`} replace />} />
+            <Route path="/" element={<Home />} />
 
             <Route path="/shop" element={<Shop />} />
             <Route path="/cart" element={<Cart />} />

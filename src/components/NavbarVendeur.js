@@ -103,7 +103,7 @@ export default function NavbarVendeur() {
       top: "70px",
       left: 0,
       width: "50%",
-      height: "100vh",
+      height: "200px",
       boxShadow: "2px 0 6px rgba(0,0,0,0.3)",
       zIndex: 999,
     },
