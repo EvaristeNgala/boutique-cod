@@ -119,8 +119,8 @@ export default function ProduitDetail() {
       `🔢 Quantité: ${quantite}\n` +
       `📝 Avis: ${avis || "Aucun"}`;
 
-    const telNettoye = vendeurTel.replace(/[^0-9]/g, "");
-    const url = `https://wa.me/${telNettoye}?text=${encodeURIComponent(message)}`;
+    const cleanPhone = vendeurTel.replace(/\D/g, "");
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 
     window.open(url, "_blank");
     setShowForm(false);
@@ -194,7 +194,7 @@ export default function ProduitDetail() {
             style={{
               fontWeight: "bold",
               fontSize: 22,
-              color: produit.oldPrice ? "#e60023" : "#28a745",
+              color: produit.oldPrice ? "#e60023" : "#e60023",
             }}
           >
             {produit.price ?? produit.prix} $
@@ -291,7 +291,7 @@ export default function ProduitDetail() {
             style={{
               marginTop: 30,
               padding: "10px 15px",
-              backgroundColor: "#28a745",
+              backgroundColor: "#0a1f44",
               color: "white",
               border: "none",
               cursor: "pointer",
@@ -428,7 +428,7 @@ const styles = {
     overflow: "hidden",
   },
   banner: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#0a1f44",
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
@@ -441,7 +441,7 @@ const styles = {
   },
   submitBtn: {
     padding: "10px 20px",
-    backgroundColor: "#28a745",
+    backgroundColor: "#0a1f44",
     color: "white",
     border: "none",
     borderRadius: 5,
