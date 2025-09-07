@@ -71,8 +71,8 @@ export default function ProduitsBoutique() {
   // Ouvrir popup ajout au panier
   const openAddToCartPopup = (produit) => {
     setSelectedProduit(produit);
-    setSelectedTaille(produit.tailles?.length > 0 ? produit.tailles[0] : "");
-    setSelectedCouleur(produit.couleurs?.length > 0 ? produit.couleurs[0] : "");
+    setSelectedTaille("");
+    setSelectedCouleur("");
     setQuantite(1);
     setPopupAddToCartOpen(true);
   };
@@ -199,9 +199,13 @@ export default function ProduitsBoutique() {
                   </div>
                 </div>
               ) : (
-                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
-                  Ce produit n'a pas d'option de taille.
-                </div>
+                <input
+                  type="text"
+                  placeholder="Entrez votre taille"
+                  value={selectedTaille}
+                  onChange={(e) => setSelectedTaille(e.target.value)}
+                  style={{ ...styles.input, marginTop: 5 }}
+                />
               )}
 
               {/* Couleur */}
@@ -230,9 +234,13 @@ export default function ProduitsBoutique() {
                   </div>
                 </div>
               ) : (
-                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
-                  Ce produit n'a pas d'option de couleur.
-                </div>
+                <input
+                  type="text"
+                  placeholder="Entrez votre couleur"
+                  value={selectedCouleur}
+                  onChange={(e) => setSelectedCouleur(e.target.value)}
+                  style={{ ...styles.input, marginTop: 5 }}
+                />
               )}
 
               {/* Quantité */}
@@ -306,14 +314,13 @@ const styles = {
     justifyContent: "space-between",
   },
   img: {
-  width: "100%",
-  height: "auto",       // hauteur automatique selon l’image
-  maxHeight: "250px",   // limite haute optionnelle
-  objectFit: "contain", // affiche l’image entière
-  borderRadius: "6px",
-  backgroundColor: "#f9f9f9", // optionnel, couleur de fond si l’image est plus petite
-},
-
+    width: "100%",
+    height: "auto",
+    maxHeight: "250px",
+    objectFit: "contain",
+    borderRadius: "6px",
+    backgroundColor: "#f9f9f9",
+  },
   title: {
     fontSize: "14px",
     fontWeight: "600",
