@@ -6,6 +6,8 @@ import { getAuth } from 'firebase/auth';
 export default function AjouterProduit() {
   const [nom, setNom] = useState('');
   const [price, setPrice] = useState('');
+  const [promoPrice, setPromoPrice] = useState('');
+  const [hasPromo, setHasPromo] = useState(false); // ✅ nouvelle option promo
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [categorie, setCategorie] = useState('');
@@ -27,26 +29,36 @@ export default function AjouterProduit() {
     setIsLoading(true);
 
     try {
-      await addDoc(collection(db, 'produits'), {
+      const data = {
         nom,
-        price: parseFloat(price),
         description,
         categorie,
-        tailles: tailles.split(',').map(t => t.trim()),
-        couleurs: couleurs.split(',').map(c => c.trim()),
+        tailles: tailles ? tailles.split(',').map(t => t.trim()) : [],
+        couleurs: couleurs ? couleurs.split(',').map(c => c.trim()) : [],
         image: imageUrl,
         vendeurId: user.uid,
-        createdAt: serverTimestamp()
-      });
+        createdAt: serverTimestamp(),
+      };
+
+      if (hasPromo && promoPrice) {
+        data.oldPrice = parseFloat(price);   // ✅ prix normal stocké dans oldPrice
+        data.price = parseFloat(promoPrice); // ✅ prix promo devient price
+      } else {
+        data.price = parseFloat(price); // ✅ prix normal seulement
+      }
+
+      await addDoc(collection(db, 'produits'), data);
 
       alert('Produit ajouté avec succès');
       setNom('');
       setPrice('');
+      setPromoPrice('');
       setDescription('');
       setCategorie('');
       setTailles('');
       setCouleurs('');
       setImageUrl('');
+      setHasPromo(false);
     } catch (error) {
       console.error('Erreur lors de l\'ajout :', error);
       alert('Erreur lors de l\'ajout du produit.');
@@ -68,6 +80,7 @@ export default function AjouterProduit() {
     }}>
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Ajouter un produit</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        
         <input
           type="text"
           placeholder="Nom"
@@ -76,14 +89,38 @@ export default function AjouterProduit() {
           required
           style={inputStyle}
         />
+
         <input
           type="number"
-          placeholder="Price"
+          placeholder="Prix normal"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           required
           style={inputStyle}
         />
+
+        {/* ✅ Checkbox promo */}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            checked={hasPromo}
+            onChange={(e) => setHasPromo(e.target.checked)}
+          />
+          Ce produit est en promotion
+        </label>
+
+        {/* ✅ Champ prix promo affiché seulement si activé */}
+        {hasPromo && (
+          <input
+            type="number"
+            placeholder="Prix promotionnel"
+            value={promoPrice}
+            onChange={(e) => setPromoPrice(e.target.value)}
+            required
+            style={inputStyle}
+          />
+        )}
+
         <textarea
           placeholder="Description"
           value={description}
@@ -91,6 +128,7 @@ export default function AjouterProduit() {
           required
           style={{ ...inputStyle, height: '100px' }}
         />
+
         <input
           type="text"
           placeholder="Catégorie"
@@ -99,6 +137,7 @@ export default function AjouterProduit() {
           required
           style={inputStyle}
         />
+
         <input
           type="text"
           placeholder="Tailles (séparées par des virgules)"
@@ -106,6 +145,7 @@ export default function AjouterProduit() {
           onChange={(e) => setTailles(e.target.value)}
           style={inputStyle}
         />
+
         <input
           type="text"
           placeholder="Couleurs (séparées par des virgules)"
@@ -113,6 +153,7 @@ export default function AjouterProduit() {
           onChange={(e) => setCouleurs(e.target.value)}
           style={inputStyle}
         />
+
         <input
           type="text"
           placeholder="Lien URL de l'image"
@@ -121,6 +162,7 @@ export default function AjouterProduit() {
           required
           style={inputStyle}
         />
+
         <button
           type="submit"
           disabled={isLoading}
@@ -153,5 +195,5 @@ const inputStyle = {
   border: '1px solid #ccc',
   borderRadius: '5px',
   fontSize: '16px',
-  width: '100%'
+  width: '95%'
 };

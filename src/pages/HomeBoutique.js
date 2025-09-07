@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, collection, getDocs, query, limit } from "firebase/firestore";
+import Compteur from "./Compteur";
 
 export default function HomeBoutique() {
   const { vendeurId } = useParams();
@@ -137,4 +138,5 @@ export default function HomeBoutique() {
       </div>
     </div>
   );
+  <Compteur />
 }

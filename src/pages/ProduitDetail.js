@@ -39,6 +39,8 @@ export default function ProduitDetail() {
         if (produitSnap.exists()) {
           const dataProduit = produitSnap.data();
           setProduit(dataProduit);
+
+          // Initialisation
           setSelectedTaille(dataProduit.tailles?.[0] || "");
           setSelectedCouleur(dataProduit.couleurs?.[0] || "");
 
@@ -72,13 +74,10 @@ export default function ProduitDetail() {
   }, [produitId]);
 
   const handleCommander = () => {
-    // Modifier la validation :
-    // Si le produit a des tailles, taille doit être sélectionnée
     if (produit?.tailles?.length > 0 && !selectedTaille) {
       alert("Veuillez sélectionner la taille.");
       return;
     }
-    // Si le produit a des couleurs, couleur doit être sélectionnée
     if (produit?.couleurs?.length > 0 && !selectedCouleur) {
       alert("Veuillez sélectionner la couleur.");
       return;
@@ -162,20 +161,54 @@ export default function ProduitDetail() {
       </div>
 
       <div style={{ padding: 20, maxWidth: 600, margin: "auto" }}>
+        {/* Image produit */}
         <img
           src={produit.image}
           alt={produit.nom || produit.name}
-          style={{ width: "100%", height: 400, marginBottom: 15, objectFit: "cover" }}
+          style={{
+            width: "100%",
+            maxHeight: 450,
+            objectFit: "contain",
+            borderRadius: 8,
+            marginBottom: 15,
+            backgroundColor: "#f9f9f9",
+          }}
         />
 
         <p>{produit.description}</p>
-        <p style={{ fontWeight: "bold", fontSize: 20 }}>{produit.price} $</p>
+
+        {/* Prix avec promo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0" }}>
+          {produit.oldPrice && (
+            <span
+              style={{
+                textDecoration: "line-through",
+                color: "#888",
+                fontSize: 18,
+              }}
+            >
+              {produit.oldPrice} $
+            </span>
+          )}
+          <span
+            style={{
+              fontWeight: "bold",
+              fontSize: 22,
+              color: produit.oldPrice ? "#e60023" : "#28a745",
+            }}
+          >
+            {produit.price ?? produit.prix} $
+          </span>
+        </div>
 
         {/* Taille */}
         <div style={{ marginTop: 20 }}>
           <strong>Taille: </strong>
-          <div style={styles.selectedBox}>{selectedTaille || (produit.tailles?.length > 0 ? "Aucune" : "—")}</div>
-          {produit.tailles?.length > 0 ? (
+          <div style={styles.selectedBox}>
+            {selectedTaille || (produit.tailles?.length > 0 ? "Aucune" : "À saisir")}
+          </div>
+
+          {produit.tailles && produit.tailles.length > 0 ? (
             <div style={styles.optionsContainer}>
               {produit.tailles.map((taille) => (
                 <div
@@ -191,15 +224,26 @@ export default function ProduitDetail() {
               ))}
             </div>
           ) : (
-            <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>Ce produit n'a pas d'option de taille.</div>
+            <div style={{ marginTop: 8 }}>
+              <input
+                type="text"
+                placeholder="Saisir la taille"
+                value={selectedTaille}
+                onChange={(e) => setSelectedTaille(e.target.value)}
+                style={styles.input}
+              />
+            </div>
           )}
         </div>
 
         {/* Couleur */}
         <div style={{ marginTop: 20 }}>
           <strong>Couleur: </strong>
-          <div style={styles.selectedBox}>{selectedCouleur || (produit.couleurs?.length > 0 ? "Aucune" : "—")}</div>
-          {produit.couleurs?.length > 0 ? (
+          <div style={styles.selectedBox}>
+            {selectedCouleur || (produit.couleurs?.length > 0 ? "Aucune" : "À saisir")}
+          </div>
+
+          {produit.couleurs && produit.couleurs.length > 0 ? (
             <div style={styles.optionsContainer}>
               {produit.couleurs.map((couleur) => (
                 <div
@@ -215,7 +259,15 @@ export default function ProduitDetail() {
               ))}
             </div>
           ) : (
-            <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>Ce produit n'a pas d'option de couleur.</div>
+            <div style={{ marginTop: 8 }}>
+              <input
+                type="text"
+                placeholder="Saisir la couleur"
+                value={selectedCouleur}
+                onChange={(e) => setSelectedCouleur(e.target.value)}
+                style={styles.input}
+              />
+            </div>
           )}
         </div>
 
@@ -257,10 +309,7 @@ export default function ProduitDetail() {
       {showForm && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
-            {/* Bandeau vert collé en haut du popup */}
             <div style={styles.banner}>Veuillez entrer vos informations</div>
-
-            {/* Formulaire */}
             <form onSubmit={sendWhatsAppOrder} style={styles.form}>
               <input
                 type="text"
@@ -271,7 +320,6 @@ export default function ProduitDetail() {
                 style={styles.input}
                 required
               />
-
               <input
                 type="text"
                 name="pays"
@@ -281,7 +329,6 @@ export default function ProduitDetail() {
                 style={styles.input}
                 required
               />
-
               <input
                 type="text"
                 name="ville"
@@ -291,7 +338,6 @@ export default function ProduitDetail() {
                 style={styles.input}
                 required
               />
-
               <input
                 type="text"
                 name="adresse"
@@ -301,7 +347,6 @@ export default function ProduitDetail() {
                 style={styles.input}
                 required
               />
-
               <textarea
                 name="avis"
                 placeholder="Avis (optionnel)"
@@ -309,11 +354,9 @@ export default function ProduitDetail() {
                 onChange={handleInputChange}
                 style={{ ...styles.input, height: 80, resize: "vertical" }}
               />
-
               <button type="submit" style={styles.submitBtn}>
                 Envoyer la commande
               </button>
-
               <button
                 type="button"
                 onClick={() => setShowForm(false)}

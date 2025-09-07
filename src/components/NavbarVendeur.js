@@ -1,23 +1,23 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+// src/components/NavbarVendeur.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CartContext } from "../context/CartContext";
 import logo from "../assets/logo.png";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { logoutUser } from "../utils/logout";
+import { ShoppingCart } from "lucide-react"; // ✅ Icône panier moderne
 
 export default function NavbarVendeur() {
-  const { cart } = useContext(CartContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [visitorName, setVisitorName] = useState("");
   const menuRef = useRef(null);
+
+  // Récupérer vendeurId depuis l’URL
   const vendeurId = location.pathname.split("/")[2];
-  const vendeurCart = cart[vendeurId] || [];
-  const totalItems = vendeurCart.reduce((sum, i) => sum + (i.quantite || 1), 0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -26,15 +26,15 @@ export default function NavbarVendeur() {
         if (vendeurSnap.exists()) {
           setUserRole("vendeur");
           setVisitorName(vendeurSnap.data().nom || u.email);
-          if (vendeurId) navigate("/dashboard-vendeur");
           return;
         }
         const visitorSnap = await getDoc(doc(db, "visitors", u.uid));
         if (visitorSnap.exists()) {
           setUserRole("visiteur");
           setVisitorName(visitorSnap.data().nom || u.email);
-          if (visitorSnap.data().vendeurId !== vendeurId)
-            navigate(`/boutique/${visitorSnap.data().vendeurId}`);
+          if (visitorSnap.data().vendeurId !== vendeurId) {
+            navigate(`/boutique/${visitorSnap.data().vendeurId}/produits`);
+          }
           return;
         }
         await logoutUser(navigate);
@@ -77,8 +77,12 @@ export default function NavbarVendeur() {
       fontSize: "2rem",
       cursor: "pointer",
     },
+    right: {
+      display: "flex",
+      alignItems: "center",
+      gap: "15px",
+    },
     userInfo: {
-      marginRight: 10,
       fontWeight: "500",
     },
     link: {
@@ -112,35 +116,56 @@ export default function NavbarVendeur() {
       borderRadius: "5px",
       cursor: "pointer",
     },
+    cart: {
+      cursor: "pointer",
+    },
   };
 
   return (
     <nav style={styles.nav}>
       <div style={styles.container}>
-        <div onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburger}>☰</div>
-        <img src={logo} alt="logo" style={styles.logo} onClick={() => navigate(`/boutique/${vendeurId}/produits`)} />
-        <div>
+        <div onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburger}>
+          ☰
+        </div>
+        <img
+          src={logo}
+          alt="logo"
+          style={styles.logo}
+          onClick={() => navigate(`/boutique/${vendeurId}/produits`)} // Boutique = accueil
+        />
+        <div style={styles.right}>
           {userRole && <span style={styles.userInfo}>{visitorName}</span>}
-          <Link to={`/boutique/${vendeurId}/cart`} style={styles.link}>🛒 {totalItems}</Link>
+          {/* ✅ Icône panier en haut à droite */}
+          <ShoppingCart
+            size={26}
+            style={styles.cart}
+            onClick={() => navigate(`/boutique/${vendeurId}/cart`)}
+          />
         </div>
       </div>
 
       {menuOpen && (
         <div ref={menuRef} style={styles.menu}>
-          <Link to={`/boutique/${vendeurId}`} style={styles.link}>Accueil</Link>
-          <Link to={`/boutique/${vendeurId}/produits`} style={styles.link}>Boutique</Link>
-          <Link to={`/boutique/${vendeurId}/apropos`} style={styles.link}>À propos</Link>
-          <Link to={`/boutique/${vendeurId}/contact`} style={styles.link}>Contact</Link>
-          {userRole ? (
+          <Link to={`/boutique/${vendeurId}/produits`} style={styles.link}>
+            Boutique
+          </Link>
+          {!userRole && (
             <>
-              {userRole === "vendeur" && <Link to="/dashboard-vendeur" style={styles.link}>📊 Dashboard</Link>}
-              <button onClick={() => logoutUser(navigate, vendeurId)} style={styles.button}>🚪 Déconnexion</button>
+              <Link to={`/boutique/${vendeurId}/login`} style={styles.link}>
+                Connexion
+              </Link>
+              <Link to={`/boutique/${vendeurId}/register`} style={styles.link}>
+                Inscription
+              </Link>
             </>
-          ) : (
-            <>
-              <Link to={`/boutique/${vendeurId}/register`} style={styles.link}>Inscription</Link>
-              <Link to={`/boutique/${vendeurId}/login`} style={styles.link}>Connexion</Link>
-            </>
+          )}
+          {userRole && (
+            <button
+              onClick={() => logoutUser(navigate, vendeurId)}
+              style={styles.button}
+            >
+              Déconnexion
+            </button>
           )}
         </div>
       )}

@@ -17,7 +17,7 @@ export default function ProduitsBoutique() {
   const [vendeurPhone, setVendeurPhone] = useState("");
   const { addToCart } = useContext(CartContext);
 
-  // Pour popup ajout au panier : taille, couleur, quantité sélectionnées
+  // Pour popup ajout au panier
   const [selectedTaille, setSelectedTaille] = useState("");
   const [selectedCouleur, setSelectedCouleur] = useState("");
   const [quantite, setQuantite] = useState(1);
@@ -42,7 +42,7 @@ export default function ProduitsBoutique() {
     fetchProduits();
   }, [vendeurId]);
 
-  // Récupérer téléphone vendeur (facultatif, utilisé ailleurs si besoin)
+  // Récupérer téléphone vendeur
   useEffect(() => {
     async function fetchVendeur() {
       if (!vendeurId) return;
@@ -71,9 +71,8 @@ export default function ProduitsBoutique() {
   // Ouvrir popup ajout au panier
   const openAddToCartPopup = (produit) => {
     setSelectedProduit(produit);
-    // Si le produit a des tailles/couleurs, pré-sélectionner la première option, sinon garder vide
-    setSelectedTaille(produit.tailles && produit.tailles.length > 0 ? produit.tailles[0] : "");
-    setSelectedCouleur(produit.couleurs && produit.couleurs.length > 0 ? produit.couleurs[0] : "");
+    setSelectedTaille(produit.tailles?.length > 0 ? produit.tailles[0] : "");
+    setSelectedCouleur(produit.couleurs?.length > 0 ? produit.couleurs[0] : "");
     setQuantite(1);
     setPopupAddToCartOpen(true);
   };
@@ -88,7 +87,6 @@ export default function ProduitsBoutique() {
 
   // Ajouter au panier
   const handleConfirmAddToCart = () => {
-    // Ne demander la sélection que si le produit propose des options correspondantes
     if (selectedProduit?.tailles?.length > 0 && !selectedTaille) {
       alert("Veuillez sélectionner la taille.");
       return;
@@ -100,19 +98,17 @@ export default function ProduitsBoutique() {
 
     const produitAvecOptions = {
       id: selectedProduit.id,
-      // garder les propriétés principales en fallback (nom/price/image/description...)
       nom: selectedProduit.nom || selectedProduit.name || "",
       name: selectedProduit.name || selectedProduit.nom || "",
       price: selectedProduit.price ?? selectedProduit.prix ?? 0,
+      oldPrice: selectedProduit.oldPrice ?? null,
       image: selectedProduit.image || "",
       description: selectedProduit.description || "",
-      // n'ajouter que si présentes — sinon conserver vide ou undefined
       taille: selectedTaille || null,
       couleur: selectedCouleur || null,
       quantite: quantite || 1,
     };
 
-    // addToCart attend (produit, vendeurId) dans ton code existant
     addToCart(produitAvecOptions, vendeurId);
     closeAddToCartPopup();
   };
@@ -136,24 +132,29 @@ export default function ProduitsBoutique() {
           {filtered.map((p) => (
             <div key={p.id} style={styles.card}>
               <div
-                style={{ ...styles.imageContainer, cursor: "pointer" }}
+                style={{ cursor: "pointer" }}
                 onClick={() => navigate(`/boutique/${vendeurId}/produit/${p.id}`)}
               >
                 <img src={p.image} alt={p.nom || p.name} style={styles.img} />
               </div>
 
+              <p style={styles.title}>{p.nom || p.name}</p>
+
               <p style={styles.desc}>
-                {p.description && p.description.length > 150
-                  ? p.description.substring(0, 70) + "..."
+                {p.description && p.description.length > 50
+                  ? p.description.substring(0, 50) + "..."
                   : p.description}
               </p>
 
-              <p style={styles.price}>{(p.price ?? p.prix ?? 0)} $ / pièce</p>
-
-              <button
-                style={styles.addBtn}
-                onClick={() => openAddToCartPopup(p)}
-              >
+              <div style={styles.priceBox}>
+                {p.oldPrice && (
+                  <span style={styles.oldPrice}>{p.oldPrice} UDS</span>
+                )}
+                <span style={styles.newPrice}>
+                  {(p.price ?? p.prix ?? 0)} UDS
+                </span>
+              </div>
+              <button style={styles.addBtn} onClick={() => openAddToCartPopup(p)}>
                 Ajouter au panier
               </button>
             </div>
@@ -164,7 +165,6 @@ export default function ProduitsBoutique() {
       {/* Popup Ajouter au panier */}
       {popupAddToCartOpen && selectedProduit && (
         <div style={styles.overlay} onClick={closeAddToCartPopup}>
-          {/* prevent overlay click from closing when clicking inside popup */}
           <div style={styles.popup} onClick={(e) => e.stopPropagation()}>
             <div style={styles.header}>
               <h4 style={{ margin: 0, color: "#fff" }}>
@@ -176,10 +176,11 @@ export default function ProduitsBoutique() {
               {/* Taille */}
               <div>
                 <strong>Taille sélectionnée : </strong>
-                <div style={styles.selectedBox}>{selectedTaille || (selectedProduit.tailles?.length > 0 ? "Aucune" : "—")}</div>
+                <div style={styles.selectedBox}>
+                  {selectedTaille || (selectedProduit.tailles?.length > 0 ? "Aucune" : "—")}
+                </div>
               </div>
 
-              {/* Afficher les options uniquement si le produit en propose */}
               {selectedProduit.tailles && selectedProduit.tailles.length > 0 ? (
                 <div style={{ marginTop: 10 }}>
                   <div style={styles.optionsContainer}>
@@ -198,13 +199,17 @@ export default function ProduitsBoutique() {
                   </div>
                 </div>
               ) : (
-                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>Ce produit n'a pas d'option de taille.</div>
+                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
+                  Ce produit n'a pas d'option de taille.
+                </div>
               )}
 
               {/* Couleur */}
               <div style={{ marginTop: 15 }}>
                 <strong>Couleur sélectionnée : </strong>
-                <div style={styles.selectedBox}>{selectedCouleur || (selectedProduit.couleurs?.length > 0 ? "Aucune" : "—")}</div>
+                <div style={styles.selectedBox}>
+                  {selectedCouleur || (selectedProduit.couleurs?.length > 0 ? "Aucune" : "—")}
+                </div>
               </div>
 
               {selectedProduit.couleurs && selectedProduit.couleurs.length > 0 ? (
@@ -225,7 +230,9 @@ export default function ProduitsBoutique() {
                   </div>
                 </div>
               ) : (
-                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>Ce produit n'a pas d'option de couleur.</div>
+                <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
+                  Ce produit n'a pas d'option de couleur.
+                </div>
               )}
 
               {/* Quantité */}
@@ -244,11 +251,25 @@ export default function ProduitsBoutique() {
               </div>
 
               {/* Boutons */}
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
-                <button type="button" onClick={closeAddToCartPopup} style={styles.cancelBtn}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 20,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={closeAddToCartPopup}
+                  style={styles.cancelBtn}
+                >
                   ❌ Annuler
                 </button>
-                <button type="button" onClick={handleConfirmAddToCart} style={styles.sendBtn}>
+                <button
+                  type="button"
+                  onClick={handleConfirmAddToCart}
+                  style={styles.sendBtn}
+                >
                   Ajouter au panier
                 </button>
               </div>
@@ -262,22 +283,142 @@ export default function ProduitsBoutique() {
 
 const styles = {
   container: { padding: "15px" },
-  search: { width: "95%", padding: "10px", marginBottom: "20px", border: "1px solid #ccc", borderRadius: "5px", fontSize: "16px" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "7px" },
-  card: { border: "1px solid #ddd", borderRadius: "8px", padding: "10px", background: "#fff", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" },
-  imageContainer: { position: "relative", overflow: "hidden", borderRadius: "8px", marginBottom: "5px" },
-  img: { width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" },
-  desc: { fontSize: "14px", color: "#555" },
-  price: { margin: "5px 0", fontWeight: "600" },
-  addBtn: { width: "100%", background: "#1e90ff", color: "#fff", border: "none", padding: "10px", borderRadius: "5px", cursor: "pointer", marginTop: "5px" },
-  overlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
-  popup: { background: "#fff", borderRadius: "8px", width: "400px", maxWidth: "90%", overflow: "hidden", boxShadow: "0 6px 18px rgba(0,0,0,0.15)" },
+  search: {
+    width: "95%",
+    padding: "10px",
+    marginBottom: "20px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    fontSize: "16px",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "10px",
+  },
+  card: {
+    border: "1px solid #eee",
+    borderRadius: "8px",
+    background: "#fff",
+    padding: "8px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  img: {
+  width: "100%",
+  height: "auto",       // hauteur automatique selon l’image
+  maxHeight: "250px",   // limite haute optionnelle
+  objectFit: "contain", // affiche l’image entière
+  borderRadius: "6px",
+  backgroundColor: "#f9f9f9", // optionnel, couleur de fond si l’image est plus petite
+},
+
+  title: {
+    fontSize: "14px",
+    fontWeight: "600",
+    marginTop: "6px",
+    marginBottom: "4px",
+    color: "#222",
+  },
+  desc: { fontSize: "12px", color: "#555", marginBottom: "6px" },
+  priceBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    marginBottom: "6px",
+  },
+  oldPrice: {
+    textDecoration: "line-through",
+    fontSize: "12px",
+    color: "#999",
+  },
+  newPrice: {
+    fontWeight: "bold",
+    color: "#e60023",
+    fontSize: "14px",
+  },
+  addBtn: {
+    width: "100%",
+    background: "#0a1f44",
+    color: "#fff",
+    border: "none",
+    padding: "8px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "13px",
+    marginTop: "auto",
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  popup: {
+    background: "#fff",
+    borderRadius: "8px",
+    width: "400px",
+    maxWidth: "90%",
+    overflow: "hidden",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+  },
   header: { background: "#0a1f44", padding: "10px", textAlign: "center" },
-  input: { padding: "8px", border: "1px solid #ccc", borderRadius: "5px", boxSizing: "border-box" },
-  cancelBtn: { background: "#ccc", border: "none", padding: "10px", borderRadius: "5px", cursor: "pointer", flex: 1, marginRight: 8 },
-  sendBtn: { background: "#1e90ff", color: "#fff", border: "none", padding: "10px", borderRadius: "5px", cursor: "pointer", flex: 1, marginLeft: 8 },
-  optionsContainer: { display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "6px" },
-  optionBox: { border: "1px solid #ccc", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", userSelect: "none" },
-  optionSelected: { backgroundColor: "#28a745", color: "white", borderColor: "#28a745" },
-  selectedBox: { marginTop: "5px", padding: "8px 12px", border: "1px solid #28a745", borderRadius: "5px", fontWeight: "bold", display: "inline-block" },
+  input: {
+    padding: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    boxSizing: "border-box",
+  },
+  cancelBtn: {
+    background: "#ccc",
+    border: "none",
+    padding: "10px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    flex: 1,
+    marginRight: 8,
+  },
+  sendBtn: {
+    background: "#1e90ff",
+    color: "#fff",
+    border: "none",
+    padding: "10px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    flex: 1,
+    marginLeft: 8,
+  },
+  optionsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginTop: "6px",
+  },
+  optionBox: {
+    border: "1px solid #ccc",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    userSelect: "none",
+  },
+  optionSelected: {
+    backgroundColor: "#28a745",
+    color: "white",
+    borderColor: "#28a745",
+  },
+  selectedBox: {
+    marginTop: "5px",
+    padding: "8px 12px",
+    border: "1px solid #28a745",
+    borderRadius: "5px",
+    fontWeight: "bold",
+    display: "inline-block",
+  },
 };
