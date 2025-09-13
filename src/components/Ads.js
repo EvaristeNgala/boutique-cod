@@ -24,28 +24,17 @@ export default function Ads() {
     scriptHPFInvoke.async = true;
     document.body.appendChild(scriptHPFInvoke);
 
-    // -------------------
-    // Script Native Banner
-    // -------------------
-    const scriptNative = document.createElement("script");
-    scriptNative.async = true;
-    scriptNative.setAttribute("data-cfasync", "false");
-    scriptNative.src = "//pl27637623.revenuecpmgate.com/eaae9e09975c1ead0dd9e771377b57db/invoke.js";
-    document.body.appendChild(scriptNative);
-
     // Nettoyage des scripts si on quitte la page
     return () => {
       document.body.removeChild(scriptHPF);
       document.body.removeChild(scriptHPFInvoke);
-      document.body.removeChild(scriptNative);
     };
   }, []);
 
   return (
     <div style={{ marginTop: "20px", textAlign: "center" }}>
-      {/* Zone où les pubs s’affichent */}
+      {/* Zone où le banner classique s’affiche */}
       <div id="ad-container"></div>
-      <div id="container-eaae9e09975c1ead0dd9e771377b57db"></div>
     </div>
   );
 }
