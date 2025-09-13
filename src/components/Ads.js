@@ -49,7 +49,7 @@ export default function Ads() {
         id="ad-container"
         style={{
           width: "100%",
-          maxWidth: "320px",
+          maxWidth: "500px",
           margin: "0 auto",
           overflow: "hidden",
         }}
