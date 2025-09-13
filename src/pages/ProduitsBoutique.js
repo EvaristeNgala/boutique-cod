@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
+import Ads from "../components/Ads";
 
 export default function ProduitsBoutique() {
   const { vendeurId } = useParams();
@@ -285,6 +286,7 @@ export default function ProduitsBoutique() {
           </div>
         </div>
       )}
+      <Ads />
     </div>
   );
 }
