@@ -22,10 +22,22 @@ export default function Ads() {
     scriptHPFInvoke.async = true;
     document.body.appendChild(scriptHPFInvoke);
 
-    // Nettoyage des scripts si on quitte la page
+    // Adapter l'iframe après son insertion
+    const interval = setInterval(() => {
+      const iframe = document.querySelector("#ad-container iframe");
+      if (iframe) {
+        iframe.style.width = "100%"; // prend toute la largeur du conteneur
+        iframe.style.height = "auto"; // hauteur automatique
+        iframe.style.maxWidth = "728px"; // ne dépasse pas 728px
+        clearInterval(interval);
+      }
+    }, 500); // vérifie toutes les 0.5s jusqu'à ce que l'iframe apparaisse
+
+    // Nettoyage
     return () => {
       document.body.removeChild(scriptHPF);
       document.body.removeChild(scriptHPFInvoke);
+      clearInterval(interval);
     };
   }, []);
 
@@ -35,10 +47,10 @@ export default function Ads() {
       <div
         id="ad-container"
         style={{
-          width: "100%",          // prend toute la largeur disponible
-          maxWidth: "728px",      // mais pas plus que 728px
-          margin: "0 auto",       // centré horizontalement
-          overflow: "hidden",     // éviter les débordements
+          width: "100%",         
+          maxWidth: "728px",     
+          margin: "0 auto",      
+          overflow: "hidden",    
         }}
       ></div>
     </div>
