@@ -2,9 +2,7 @@ import React, { useEffect } from "react";
 
 export default function Ads() {
   useEffect(() => {
-    // -------------------
     // Script High Performance Format (iframe 728x90)
-    // -------------------
     const scriptHPF = document.createElement("script");
     scriptHPF.type = "text/javascript";
     scriptHPF.innerHTML = `
@@ -33,8 +31,16 @@ export default function Ads() {
 
   return (
     <div style={{ marginTop: "20px", textAlign: "center" }}>
-      {/* Zone où le banner classique s’affiche */}
-      <div id="ad-container"></div>
+      {/* Conteneur responsive pour le banner */}
+      <div
+        id="ad-container"
+        style={{
+          width: "100%",          // prend toute la largeur disponible
+          maxWidth: "728px",      // mais pas plus que 728px
+          margin: "0 auto",       // centré horizontalement
+          overflow: "hidden",     // éviter les débordements
+        }}
+      ></div>
     </div>
   );
 }
